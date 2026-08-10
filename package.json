@@ -32,7 +32,8 @@
     "files": [
       "src/**/*",
       "bin/**/*",
-      "package.json"
+      "package.json",
+      "!scripts"
     ],
     "directories": {
       "buildResources": "build",
@@ -49,8 +50,8 @@
         }
       ],
       "icon": "icons/lighthouse-glass-1024.png",
-      "identity": null,
       "artifactName": "${productName}-${version}-${arch}.${ext}"
-    }
+    },
+    "afterPack": "./scripts/adhoc-sign.cjs"
   }
 }
