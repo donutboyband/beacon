@@ -1,6 +1,6 @@
 {
   "name": "beacon",
-  "version": "0.3.0",
+  "version": "0.3.1",
   "description": "A guardrail for AI coding agents: per-branch front-end scope declarations, real-time flags on out-of-scope writes, and one-click revert before the PR.",
   "type": "module",
   "main": "src/main/main.js",
