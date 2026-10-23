@@ -74,7 +74,12 @@ beacon ship [--dry-run]  # stage, commit, push, open an annotated PR
 ```bash
 npm install
 npm start        # run the app from source
+bun test         # behaviour tests (engine, guard, CLI) against throwaway repos
 ```
+
+The tests pin down current behaviour exactly — outputs, files written, git
+state, terminal text — using local fixture repos and a fake `gh`, with no
+network. Everything under test is reached through `test/support/subject.js`.
 
 ## Build
 

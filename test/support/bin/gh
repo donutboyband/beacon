@@ -1,0 +1,33 @@
+#!/bin/sh
+# Stand-in for the GitHub CLI in tests: records every call to $FAKE_GH_LOG and
+# never touches the network. $FAKE_GH_MODE switches it to "missing" (gh not
+# installed) or "unauthed" (installed, not signed in).
+[ "$FAKE_GH_MODE" = "missing" ] && exit 127
+log="${FAKE_GH_LOG:-/dev/null}"
+printf 'gh %s%s\n' "$*" "${GH_TOKEN:+ [GH_TOKEN=$GH_TOKEN]}" >> "$log"
+
+case "$1 $2" in
+  "--version "*)
+    echo "gh version 9.9.9"; exit 0 ;;
+  "auth status")
+    [ "$FAKE_GH_MODE" = "unauthed" ] && { echo "not logged in" >&2; exit 1; }
+    exit 0 ;;
+  "api user")
+    [ "$FAKE_GH_MODE" = "unauthed" ] && exit 1
+    echo "test-user"; exit 0 ;;
+  "pr create")
+    while [ $# -gt 0 ]; do
+      if [ "$1" = "--body-file" ]; then { echo "--- body"; cat "$2"; echo; echo "--- end"; } >> "$log"; fi
+      shift
+    done
+    [ "$FAKE_GH_MODE" = "pr-fail" ] && { echo "pull request create failed" >&2; exit 1; }
+    echo "https://github.com/test/repo/pull/1"; exit 0 ;;
+  "pr list")
+    [ "$FAKE_GH_MODE" = "pr-fail" ] && { echo "no repo" >&2; exit 1; }
+    cat "${FAKE_GH_PR_LIST:-/dev/null}"; exit 0 ;;
+  "pr view")
+    [ "$FAKE_GH_MODE" = "pr-fail" ] && { echo "no pull request found" >&2; exit 1; }
+    cat "$FAKE_GH_PR_VIEW"; exit 0 ;;
+esac
+echo "fake gh: unhandled: $*" >&2
+exit 1

@@ -1,0 +1,171 @@
+// Bun Snapshot v1, https://bun.sh/docs/test/snapshots
+
+exports[`context getContext snapshot, in and out of a repo 1`] = `
+{
+  "branch": "main",
+  "cwd": "<TMP>/work",
+  "defaultBranch": "main",
+  "dirty": false,
+  "ghReady": true,
+  "isRepo": true,
+  "originUrl": "<TMP>/github.com/test/repo.git",
+  "ownerRepo": "test/repo",
+}
+`;
+
+exports[`branches listBranches: newest first, current/default flagged 1`] = `
+{
+  "branches": [
+    {
+      "current": false,
+      "date": "<date>",
+      "isDefault": false,
+      "name": "newer",
+      "oid": "<short-sha>",
+      "upstream": "origin/newer",
+    },
+    {
+      "current": false,
+      "date": "<date>",
+      "isDefault": false,
+      "name": "older",
+      "oid": "<short-sha>",
+      "upstream": null,
+    },
+    {
+      "current": true,
+      "date": "<date>",
+      "isDefault": true,
+      "name": "main",
+      "oid": "<short-sha>",
+      "upstream": "origin/main",
+    },
+  ],
+  "current": "main",
+  "defaultBranch": "main",
+}
+`;
+
+exports[`branches branchLog: this branch's commits with change counts 1`] = `
+{
+  "branch": "log-me",
+  "commits": [
+    {
+      "additions": 0,
+      "author": "Test",
+      "date": "<date>",
+      "deletions": 1,
+      "files": 2,
+      "message": "edit a, add bin",
+      "oid": "<short-sha>",
+    },
+    {
+      "additions": 3,
+      "author": "Test",
+      "date": "<date>",
+      "deletions": 0,
+      "files": 1,
+      "message": "add a",
+      "oid": "<short-sha>",
+    },
+    {
+      "additions": 132,
+      "author": "Test",
+      "date": "<date>",
+      "deletions": 0,
+      "files": 2,
+      "message": "Beacon: declare front-end scope for log-me",
+      "oid": "<short-sha>",
+    },
+  ],
+  "count": 3,
+  "defaultBranch": "main",
+}
+`;
+
+exports[`saving workingChanges parses porcelain, including renames and deletions 1`] = `
+{
+  "branch": "wc",
+  "files": [
+    {
+      "file": " lead.md",
+      "outOfScope": true,
+      "prototype": false,
+      "status": "modified",
+    },
+    {
+      "file": "src/a.css",
+      "outOfScope": false,
+      "prototype": false,
+      "status": "modified",
+    },
+    {
+      "file": "src/components/New.tsx",
+      "outOfScope": false,
+      "prototype": false,
+      "status": "renamed",
+    },
+    {
+      "file": "src/gone.ts",
+      "outOfScope": true,
+      "prototype": false,
+      "status": "deleted",
+    },
+    {
+      "file": "src/new dir/file.css",
+      "outOfScope": false,
+      "prototype": false,
+      "status": "added",
+    },
+  ],
+}
+`;
+
+exports[`stashes stash, list, detail, rename, pop, drop: list 1`] = `
+[
+  "stash@{0}: WIP on main: <short-sha> initial",
+  "stash@{1}: On main: wip one",
+]
+`;
+
+exports[`stashes stash, list, detail, rename, pop, drop: after rename 1`] = `
+[
+  "stash@{0}: renamed",
+  "stash@{1}: WIP on main: <short-sha> initial",
+]
+`;
+
+exports[`pull requests list and detail via gh 1`] = `
+{
+  "body": "b",
+  "commits": [
+    {
+      "author": "Ann",
+      "date": "2026-01-02T00:00:00Z",
+      "message": "first",
+      "oid": "abcdef1",
+    },
+    {
+      "author": "bob",
+      "date": "2026-01-03T00:00:00Z",
+      "message": "body line",
+      "oid": "1234567",
+    },
+    {
+      "author": "",
+      "date": null,
+      "message": "(no message)",
+      "oid": "",
+    },
+  ],
+  "files": [
+    {
+      "additions": 1,
+      "deletions": 2,
+      "path": "src/a.ts",
+    },
+  ],
+  "number": 1,
+  "title": "A",
+}
+`;

@@ -1,0 +1,280 @@
+// Bun Snapshot v1, https://bun.sh/docs/test/snapshots
+
+exports[`start creates the branch, commits the declaration first, installs the guard 1`] = `
+{
+  "base": "origin/main",
+  "branch": "update-the-pricing-page",
+  "claudeMdCreated": true,
+  "committed": true,
+  "guardInstalled": true,
+  "guardNote": null,
+  "legacyGuardRemoved": false,
+  "scopePath": ".beacon/scope.json",
+}
+`;
+
+exports[`start creates the branch, commits the declaration first, installs the guard: scope.json 1`] = `
+"{
+  "_comment": "Beacon branch scope — the enforced rule for this branch/task. Edits may touch files matching \`allow\` (the front end); \`deny\` always wins (backend, auth, routing, DB schema, API handlers, infra config). Beacon's Claude Code PreToolUse hook checks every file write against this: out-of-scope writes are flagged (never blocked) and revertable via \`beacon review\` before the PR goes out. \`prototype\` paths are the mock zone: when the UI needs backend behaviour, it gets prototyped there against fixtures instead of touching the real backend. Tune the globs per repo.",
+  "branch": "update-the-pricing-page",
+  "task": "Update the Pricing Page!",
+  "createdAt": "<date>",
+  "allow": [
+    "**/*.css",
+    "**/*.scss",
+    "**/*.sass",
+    "**/*.less",
+    "**/*.pcss",
+    "**/*.styl",
+    "**/*.svg",
+    "**/*.png",
+    "**/*.jpg",
+    "**/*.jpeg",
+    "**/*.gif",
+    "**/*.webp",
+    "**/*.avif",
+    "**/*.ico",
+    "**/*.woff",
+    "**/*.woff2",
+    "**/*.ttf",
+    "**/*.otf",
+    "**/*.tsx",
+    "**/*.jsx",
+    "**/*.vue",
+    "**/*.svelte",
+    "**/*.astro",
+    "**/*.mdx",
+    "**/*.html",
+    "**/*.md",
+    "**/components/**",
+    "**/component/**",
+    "**/pages/**",
+    "**/views/**",
+    "**/screens/**",
+    "**/layouts/**",
+    "**/layout/**",
+    "**/styles/**",
+    "**/styling/**",
+    "**/theme/**",
+    "**/themes/**",
+    "**/design-tokens/**",
+    "**/tokens/**",
+    "**/*.tokens.json",
+    "**/assets/**",
+    "**/public/**",
+    "**/static/**",
+    "**/images/**",
+    "**/img/**",
+    "**/fonts/**",
+    "**/icons/**",
+    "apps/web-client/**",
+    "apps/web-customer-client/**",
+    "packages/design-tokens/**",
+    "*.config.js",
+    "*.config.cjs",
+    "*.config.mjs",
+    "*.config.ts",
+    "tsconfig*.json",
+    "**/*.config.js",
+    "**/*.config.cjs",
+    "**/*.config.mjs",
+    "**/*.config.ts",
+    "**/tsconfig*.json"
+  ],
+  "deny": [
+    "**/auth/**",
+    "**/*auth*",
+    "**/middleware*",
+    "**/*middleware*",
+    "**/routes/**",
+    "**/routing/**",
+    "**/*router*",
+    "**/*routes-registry*",
+    "**/route.*",
+    "**/*.route.*",
+    "**/api/**",
+    "**/server/**",
+    "apps/web-server/**",
+    "apps/worker/**",
+    "supabase/**",
+    "**/migrations/**",
+    "**/*.sql",
+    "**/db/**",
+    "**/database/**",
+    "**/prisma/**",
+    "**/*schema*",
+    "**/.env*",
+    "**/*.env*",
+    "**/fnox.toml",
+    ".github/**",
+    "**/.github/**",
+    "package.json",
+    "**/package.json",
+    "**/package-lock.json",
+    "**/pnpm-lock.yaml",
+    "**/yarn.lock"
+  ],
+  "prototype": [
+    ".beacon/prototype/**"
+  ]
+}
+"
+`;
+
+exports[`start creates the branch, commits the declaration first, installs the guard: CLAUDE.md (created) 1`] = `
+"<!-- beacon:scope -->
+## Branch scope (Beacon)
+
+This branch (\`update-the-pricing-page\`) is scoped to **front-end / presentation files only** —
+components, styles, view templates, static assets, and front-end test files.
+See \`.beacon/scope.json\` for the enforced rule (allowed and denied path patterns).
+
+**Never modify backend, auth, routing, database-schema, API, or infra-config
+files** — a developer owns those. Beacon watches every file write: anything
+outside the scope is flagged (not blocked) and reviewed — and revertable —
+before a PR is opened.
+
+### Needs backend to work? Prototype in front of it
+
+If the change depends on backend behaviour that doesn't exist yet, don't build
+the backend — build a **working prototype in front of it**:
+
+- Put everything mock under \`.beacon/prototype/\`: fixture data plus a stubbed
+  service/API layer exposing the same interface the real backend would.
+- Build the real UI with the repo's **actual components, styles, and design
+  tokens** — only the data behind it is fake.
+- Render it separately: a sandbox entry (story, standalone page, or harness)
+  inside \`.beacon/prototype/\`. Never wire mocks into production entry points
+  and never register real routes.
+- List the backend work needed to make it real in
+  \`.beacon/prototype/README.md\` — Beacon includes it in the PR so the
+  reviewing developer knows exactly what to productionize.
+<!-- /beacon:scope -->
+"
+`;
+
+exports[`start creates the branch, commits the declaration first, installs the guard: settings.local.json 1`] = `
+"{
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Write|Edit|MultiEdit|NotebookEdit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \\"$CLAUDE_PROJECT_DIR/.git/beacon/guard.mjs\\""
+          }
+        ]
+      }
+    ]
+  }
+}
+"
+`;
+
+exports[`start appends to an existing CLAUDE.md, and refreshes rather than stacks: CLAUDE.md (appended) 1`] = `
+"# House rules
+
+Be nice.
+
+<!-- beacon:scope -->
+## Branch scope (Beacon)
+
+This branch (\`first\`) is scoped to **front-end / presentation files only** —
+components, styles, view templates, static assets, and front-end test files.
+See \`.beacon/scope.json\` for the enforced rule (allowed and denied path patterns).
+
+**Never modify backend, auth, routing, database-schema, API, or infra-config
+files** — a developer owns those. Beacon watches every file write: anything
+outside the scope is flagged (not blocked) and reviewed — and revertable —
+before a PR is opened.
+
+### Needs backend to work? Prototype in front of it
+
+If the change depends on backend behaviour that doesn't exist yet, don't build
+the backend — build a **working prototype in front of it**:
+
+- Put everything mock under \`.beacon/prototype/\`: fixture data plus a stubbed
+  service/API layer exposing the same interface the real backend would.
+- Build the real UI with the repo's **actual components, styles, and design
+  tokens** — only the data behind it is fake.
+- Render it separately: a sandbox entry (story, standalone page, or harness)
+  inside \`.beacon/prototype/\`. Never wire mocks into production entry points
+  and never register real routes.
+- List the backend work needed to make it real in
+  \`.beacon/prototype/README.md\` — Beacon includes it in the PR so the
+  reviewing developer knows exactly what to productionize.
+<!-- /beacon:scope -->
+"
+`;
+
+exports[`start appends to an existing CLAUDE.md, and refreshes rather than stacks: CLAUDE.md (refreshed) 1`] = `
+"# House rules
+
+Be nice.
+
+<!-- beacon:scope -->
+## Branch scope (Beacon)
+
+This branch (\`second\`) is scoped to **front-end / presentation files only** —
+components, styles, view templates, static assets, and front-end test files.
+See \`.beacon/scope.json\` for the enforced rule (allowed and denied path patterns).
+
+**Never modify backend, auth, routing, database-schema, API, or infra-config
+files** — a developer owns those. Beacon watches every file write: anything
+outside the scope is flagged (not blocked) and reviewed — and revertable —
+before a PR is opened.
+
+### Needs backend to work? Prototype in front of it
+
+If the change depends on backend behaviour that doesn't exist yet, don't build
+the backend — build a **working prototype in front of it**:
+
+- Put everything mock under \`.beacon/prototype/\`: fixture data plus a stubbed
+  service/API layer exposing the same interface the real backend would.
+- Build the real UI with the repo's **actual components, styles, and design
+  tokens** — only the data behind it is fake.
+- Render it separately: a sandbox entry (story, standalone page, or harness)
+  inside \`.beacon/prototype/\`. Never wire mocks into production entry points
+  and never register real routes.
+- List the backend work needed to make it real in
+  \`.beacon/prototype/README.md\` — Beacon includes it in the PR so the
+  reviewing developer knows exactly what to productionize.
+<!-- /beacon:scope -->
+
+Trailing notes.
+"
+`;
+
+exports[`start keeps existing hooks in settings.local.json and doesn't register twice 1`] = `
+"{
+  "permissions": {
+    "allow": [
+      "Bash(ls)"
+    ]
+  },
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "echo hi"
+          }
+        ]
+      },
+      {
+        "matcher": "Write|Edit|MultiEdit|NotebookEdit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \\"$CLAUDE_PROJECT_DIR/.git/beacon/guard.mjs\\""
+          }
+        ]
+      }
+    ]
+  }
+}
+"
+`;

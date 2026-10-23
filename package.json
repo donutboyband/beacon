@@ -9,6 +9,7 @@
   },
   "scripts": {
     "start": "electron .",
+    "test": "bun test",
     "dist": "electron-builder --mac",
     "pack": "electron-builder --dir"
   },
