@@ -1,7 +1,7 @@
 #!/usr/bin/env node
-// Beacon CLI — a thin formatter over src/engine/beacon-core.mjs.
+// Beacon CLI — a thin formatter over the engine (src/engine, built to out/).
 import { createInterface } from "node:readline/promises";
-import * as beacon from "../src/engine/beacon-core.mjs";
+import * as beacon from "../out/engine.mjs";
 
 const C = {
   dim: (s) => `\x1b[2m${s}\x1b[0m`,
@@ -66,13 +66,13 @@ function printRevert(res) {
 
 async function main() {
   const [, , cmd, ...rest] = process.argv;
-  if (!beacon.isRepo(cwd) && cmd !== "help" && cmd !== undefined) die("not inside a git repository");
+  if (cmd !== "help" && cmd !== undefined && !(await beacon.isRepo(cwd))) die("not inside a git repository");
 
   switch (cmd) {
     case "start": {
       const name = rest.join(" ").trim();
       if (!name) die("usage: beacon start <branch name>");
-      const r = beacon.start({ cwd, name });
+      const r = await beacon.start({ cwd, name });
       console.log(`${C.green("✓")} on new branch ${C.bold(r.branch)} (from ${r.base}).`);
       console.log(`  ${C.dim(`· wrote ${r.scopePath} — the enforced front-end scope for this branch`)}`);
       console.log(`  ${C.dim(`· ${r.claudeMdCreated ? "created" : "updated"} CLAUDE.md — plain-language guidance for the agent`)}`);
@@ -83,7 +83,7 @@ async function main() {
       break;
     }
     case "status": {
-      const s = beacon.status({ cwd });
+      const s = await beacon.status({ cwd });
       console.log(`\n${C.bold("Branch:")} ${s.branch}   ${C.dim(`(vs origin/${s.defaultBranch})`)}`);
       console.log(`${C.bold("Diff:")}   ${s.stat || "no committed changes vs base"}\n`);
       if (!s.files.length) { console.log(C.dim("No changes yet.")); break; }
@@ -104,15 +104,15 @@ async function main() {
       const revertAll = rest.includes("--revert-all");
       const ri = rest.indexOf("--revert");
       const one = ri >= 0 ? rest[ri + 1] : undefined;
-      const r = beacon.review({ cwd });
+      const r = await beacon.review({ cwd });
       printFlagged(r);
       if (!r.flagged.length) break;
 
       if (one) {
         if (!r.flagged.some((f) => f.file === one)) die(`"${one}" isn't a flagged file on this branch`);
-        printRevert(beacon.revertOutOfScope({ cwd, files: [one] }));
+        printRevert(await beacon.revertOutOfScope({ cwd, files: [one] }));
       } else if (revertAll) {
-        printRevert(beacon.revertOutOfScope({ cwd, files: r.flagged.map((f) => f.file) }));
+        printRevert(await beacon.revertOutOfScope({ cwd, files: r.flagged.map((f) => f.file) }));
       } else if (!listOnly && process.stdin.isTTY) {
         // Walk the flags one by one — revert each, or keep it (it stays flagged
         // in the PR description if it ships).
@@ -123,7 +123,7 @@ async function main() {
           if (a === "y" || a === "yes") chosen.push(f.file);
         }
         rl.close();
-        if (chosen.length) printRevert(beacon.revertOutOfScope({ cwd, files: chosen }));
+        if (chosen.length) printRevert(await beacon.revertOutOfScope({ cwd, files: chosen }));
         else console.log(C.dim("Nothing reverted — flagged files will be called out in the PR description."));
       } else {
         console.log(C.dim("Revert with: beacon review --revert <file>   or   beacon review --revert-all"));

@@ -1,0 +1,21 @@
+// Bun Snapshot v1, https://bun.sh/docs/test/snapshots
+
+exports[`guard out-of-scope writes are flagged, logged, and still allowed: denied pattern 1`] = `
+{
+  "hookSpecificOutput": {
+    "additionalContext": "Beacon: src/auth/login.ts is outside this branch's front-end scope (it matches the denied pattern "**/auth/**" — backend, auth, routing, DB, and infra are off-limits on this branch). Do not build backend/auth/routing/schema changes on this branch. If the UI needs backend behaviour, prototype in front of it instead: mock the data/service layer under .beacon/prototype/ (same interface the real backend would expose), build the UI from the repo's real components and tokens, render it via a sandbox entry inside .beacon/prototype/, and document the needed backend work in .beacon/prototype/README.md.",
+    "hookEventName": "PreToolUse",
+  },
+  "systemMessage": "⚠ Beacon: src/auth/login.ts is outside this branch's front-end scope (it matches the denied pattern "**/auth/**" — backend, auth, routing, DB, and infra are off-limits on this branch). The write went through but was flagged — review it with \`beacon review\` (or the Beacon app) before opening a PR.",
+}
+`;
+
+exports[`guard out-of-scope writes are flagged, logged, and still allowed: no allowed pattern 1`] = `
+{
+  "hookSpecificOutput": {
+    "additionalContext": "Beacon: src/utils/x.ts is outside this branch's front-end scope (it doesn't match any allowed front-end pattern for this branch). Do not build backend/auth/routing/schema changes on this branch. If the UI needs backend behaviour, prototype in front of it instead: mock the data/service layer under .beacon/prototype/ (same interface the real backend would expose), build the UI from the repo's real components and tokens, render it via a sandbox entry inside .beacon/prototype/, and document the needed backend work in .beacon/prototype/README.md.",
+    "hookEventName": "PreToolUse",
+  },
+  "systemMessage": "⚠ Beacon: src/utils/x.ts is outside this branch's front-end scope (it doesn't match any allowed front-end pattern for this branch). The write went through but was flagged — review it with \`beacon review\` (or the Beacon app) before opening a PR.",
+}
+`;

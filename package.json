@@ -3,14 +3,21 @@
   "version": "0.3.1",
   "description": "A guardrail for AI coding agents: per-branch front-end scope declarations, real-time flags on out-of-scope writes, and one-click revert before the PR.",
   "type": "module",
-  "main": "src/main/main.js",
+  "main": "out/main.mjs",
   "bin": {
     "beacon": "bin/beacon.mjs"
   },
   "scripts": {
-    "start": "electron .",
-    "dist": "electron-builder --mac",
-    "pack": "electron-builder --dir"
+    "build": "bun scripts/build.ts",
+    "prepare": "bun scripts/build.ts",
+    "start": "bun run build && electron .",
+    "test": "bun test",
+    "typecheck": "tsc -p . && tsc -p src/renderer && tsc -p scripts",
+    "smoke": "bun run build && bun scripts/smoke-app.ts",
+    "dist": "bun run build && electron-builder --mac",
+    "pack": "bun run build && electron-builder --dir",
+    "ui:record": "bun run build && bun scripts/ui-compare.ts record",
+    "ui:compare": "bun run build && bun scripts/ui-compare.ts compare"
   },
   "author": "Stefan Rhoades",
   "license": "MIT",
@@ -23,14 +30,24 @@
     "url": "https://github.com/oneseventy170/Beacon/issues"
   },
   "devDependencies": {
+    "@types/bun": "^1.4.4",
+    "@types/node": "^26.6.5",
+    "@types/pngjs": "^6.0.5",
+    "@types/react": "^19.3.0",
+    "@types/react-dom": "^19.3.0",
     "electron": "^43.1.1",
-    "electron-builder": "^26.15.3"
+    "electron-builder": "^26.15.3",
+    "pixelmatch": "^8.0.0",
+    "pngjs": "^7.0.0",
+    "react": "^19.3.1",
+    "react-dom": "^19.3.1",
+    "typescript": "^7.0.2"
   },
   "build": {
     "appId": "com.beacon.app",
     "productName": "Beacon",
     "files": [
-      "src/**/*",
+      "out/**/*",
       "bin/**/*",
       "package.json",
       "!scripts"

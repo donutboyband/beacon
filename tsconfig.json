@@ -1,0 +1,22 @@
+{
+  // Type-checks the engine, the Electron main process and preload, and the IPC
+  // contract; Bun bundles them (scripts/build.ts). Node types and no Bun
+  // types: everything here runs on Node (Electron's main process, `node` for
+  // the installed guard), so Bun APIs must stay out of it.
+  "compilerOptions": {
+    "target": "ES2023",
+    "lib": ["ES2023"],
+    "module": "preserve",
+    "moduleResolution": "bundler",
+    "allowImportingTsExtensions": true,
+    "verbatimModuleSyntax": true,
+    "erasableSyntaxOnly": true,
+    "noEmit": true,
+    "strict": true,
+    "noUncheckedIndexedAccess": true,
+    "noImplicitOverride": true,
+    "skipLibCheck": true,
+    "types": ["node"]
+  },
+  "include": ["src/engine/**/*.ts", "src/main/**/*.ts", "src/ipc/**/*.ts", "src/renderer/*.d.ts"]
+}

@@ -1,0 +1,292 @@
+// Bun Snapshot v1, https://bun.sh/docs/test/snapshots
+
+exports[`status lists every change vs base with zones, reuse signal, and stat 1`] = `
+{
+  "branch": "polish-pricing",
+  "defaultBranch": "main",
+  "files": [
+    {
+      "file": ".beacon/scope.json",
+      "outOfScope": false,
+      "prototype": false,
+      "status": "added",
+    },
+    {
+      "file": "CLAUDE.md",
+      "outOfScope": false,
+      "prototype": false,
+      "status": "added",
+    },
+    {
+      "file": "docs/old.md",
+      "outOfScope": false,
+      "prototype": false,
+      "status": "deleted",
+    },
+    {
+      "file": "src/api/prices.ts",
+      "outOfScope": true,
+      "prototype": false,
+      "status": "modified",
+    },
+    {
+      "file": "src/auth/session.ts",
+      "outOfScope": true,
+      "prototype": false,
+      "status": "added",
+    },
+    {
+      "file": "src/components/Price.tsx",
+      "outOfScope": false,
+      "prototype": false,
+      "status": "added",
+    },
+    {
+      "file": "src/utils/fmt.ts",
+      "outOfScope": true,
+      "prototype": false,
+      "status": "modified",
+    },
+    {
+      "file": ".beacon/prototype/README.md",
+      "outOfScope": false,
+      "prototype": true,
+      "status": "added",
+    },
+    {
+      "file": ".beacon/prototype/fixtures.json",
+      "outOfScope": false,
+      "prototype": true,
+      "status": "added",
+    },
+    {
+      "file": "src/server/cache.ts",
+      "outOfScope": true,
+      "prototype": false,
+      "status": "added",
+    },
+    {
+      "file": "src/styles/price.css",
+      "outOfScope": false,
+      "prototype": false,
+      "status": "added",
+    },
+  ],
+  "signal": {
+    "assumptions": [
+      "// TODO: assume monthly billing for now",
+      "- FIXME: currency comes from account settings",
+    ],
+    "components": [
+      "Card",
+      "Badge",
+      "Stack",
+    ],
+    "tokens": [
+      "@acme/tokens",
+      "../design-tokens/space",
+      "--brand-primary",
+      "--space-4",
+      "tokens.color.primary",
+    ],
+  },
+  "stat": "7 files changed, 149 insertions(+), 3 deletions(-)",
+}
+`;
+
+exports[`status a fresh branch only differs by Beacon's own files 1`] = `
+{
+  "branch": "fresh",
+  "defaultBranch": "main",
+  "files": [
+    {
+      "file": ".beacon/scope.json",
+      "outOfScope": false,
+      "prototype": false,
+      "status": "added",
+    },
+    {
+      "file": "CLAUDE.md",
+      "outOfScope": false,
+      "prototype": false,
+      "status": "added",
+    },
+  ],
+  "signal": {
+    "assumptions": [],
+    "components": [],
+    "tokens": [],
+  },
+  "stat": "2 files changed, 132 insertions(+)",
+}
+`;
+
+exports[`review flags out-of-scope files with the guard's record and reason 1`] = `
+{
+  "branch": "polish-pricing",
+  "defaultBranch": "main",
+  "events": [
+    {
+      "file": "src/utils/fmt.ts",
+      "reason": "it doesn't match any allowed front-end pattern for this branch",
+      "resolved": false,
+      "tool": "Edit",
+      "ts": "<date>",
+    },
+    {
+      "file": "src/auth/session.ts",
+      "reason": "it matches the denied pattern "**/auth/**" — backend, auth, routing, DB, and infra are off-limits on this branch",
+      "resolved": false,
+      "tool": "Edit",
+      "ts": "<date>",
+    },
+    {
+      "file": "src/api/prices.ts",
+      "reason": "it matches the denied pattern "**/api/**" — backend, auth, routing, DB, and infra are off-limits on this branch",
+      "resolved": false,
+      "tool": "Edit",
+      "ts": "<date>",
+    },
+  ],
+  "files": [
+    {
+      "file": ".beacon/scope.json",
+      "outOfScope": false,
+      "prototype": false,
+      "status": "added",
+    },
+    {
+      "file": "CLAUDE.md",
+      "outOfScope": false,
+      "prototype": false,
+      "status": "added",
+    },
+    {
+      "file": "docs/old.md",
+      "outOfScope": false,
+      "prototype": false,
+      "status": "deleted",
+    },
+    {
+      "file": "src/api/prices.ts",
+      "outOfScope": true,
+      "prototype": false,
+      "status": "modified",
+    },
+    {
+      "file": "src/auth/session.ts",
+      "outOfScope": true,
+      "prototype": false,
+      "status": "added",
+    },
+    {
+      "file": "src/components/Price.tsx",
+      "outOfScope": false,
+      "prototype": false,
+      "status": "added",
+    },
+    {
+      "file": "src/utils/fmt.ts",
+      "outOfScope": true,
+      "prototype": false,
+      "status": "modified",
+    },
+    {
+      "file": ".beacon/prototype/README.md",
+      "outOfScope": false,
+      "prototype": true,
+      "status": "added",
+    },
+    {
+      "file": ".beacon/prototype/fixtures.json",
+      "outOfScope": false,
+      "prototype": true,
+      "status": "added",
+    },
+    {
+      "file": "src/server/cache.ts",
+      "outOfScope": true,
+      "prototype": false,
+      "status": "added",
+    },
+    {
+      "file": "src/styles/price.css",
+      "outOfScope": false,
+      "prototype": false,
+      "status": "added",
+    },
+  ],
+  "flagged": [
+    {
+      "file": "src/api/prices.ts",
+      "flag": {
+        "reason": "it matches the denied pattern "**/api/**" — backend, auth, routing, DB, and infra are off-limits on this branch",
+        "tool": "Edit",
+        "ts": "<date>",
+      },
+      "outOfScope": true,
+      "prototype": false,
+      "reason": "it matches the denied pattern "**/api/**" — backend, auth, routing, DB, and infra are off-limits on this branch",
+      "status": "modified",
+    },
+    {
+      "file": "src/auth/session.ts",
+      "flag": {
+        "reason": "it matches the denied pattern "**/auth/**" — backend, auth, routing, DB, and infra are off-limits on this branch",
+        "tool": "Edit",
+        "ts": "<date>",
+      },
+      "outOfScope": true,
+      "prototype": false,
+      "reason": "it matches the denied pattern "**/auth/**" — backend, auth, routing, DB, and infra are off-limits on this branch",
+      "status": "added",
+    },
+    {
+      "file": "src/utils/fmt.ts",
+      "flag": {
+        "reason": "it doesn't match any allowed front-end pattern for this branch",
+        "tool": "Edit",
+        "ts": "<date>",
+      },
+      "outOfScope": true,
+      "prototype": false,
+      "reason": "it doesn't match any allowed front-end pattern for this branch",
+      "status": "modified",
+    },
+    {
+      "file": "src/server/cache.ts",
+      "flag": null,
+      "outOfScope": true,
+      "prototype": false,
+      "reason": "it matches the denied pattern "**/server/**" — backend, auth, routing, DB, and infra are off-limits on this branch",
+      "status": "added",
+    },
+  ],
+  "inScope": 5,
+  "protoNotes": 
+"- Needs \`GET /api/prices\` returning \`{ id, amount }[]\`
+- FIXME: currency comes from account settings"
+,
+  "prototype": [
+    {
+      "file": ".beacon/prototype/README.md",
+      "outOfScope": false,
+      "prototype": true,
+      "status": "added",
+    },
+    {
+      "file": ".beacon/prototype/fixtures.json",
+      "outOfScope": false,
+      "prototype": true,
+      "status": "added",
+    },
+  ],
+  "stat": "7 files changed, 149 insertions(+), 3 deletions(-)",
+  "totalChanges": 11,
+}
+`;
+
+exports[`revertOutOfScope everything: committed adds, untracked files, and unstaged edits 1`] = `
+"?? .beacon/prototype/
+?? src/styles/"
+`;

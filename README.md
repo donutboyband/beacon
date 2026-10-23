@@ -72,9 +72,23 @@ beacon ship [--dry-run]  # stage, commit, push, open an annotated PR
 ## Develop
 
 ```bash
-npm install
-npm start        # run the app from source
+npm install      # also builds out/ (needs Bun)
+npm start        # build, then run the app from source
+bun test         # build, then behaviour tests (engine, guard, CLI)
+bun run typecheck
+bun run smoke    # launch the app on a fixture repo and drive it end to end
+bun run ui:compare   # walk 31 screens; DOM, toasts and pixels vs the baselines
 ```
+
+The tests pin down current behaviour exactly — outputs, files written, git
+state, terminal text — using local fixture repos and a fake `gh`, with no
+network. Everything under test is reached through `test/support/subject.js`.
+
+`ui:compare` clicks through the real app (a window opens while it runs) and
+checks every screen against `test/ui-baseline/` — recorded from the
+pre-React renderer — by canonical DOM, by the toasts shown, and pixel for
+pixel against `out/ui-baseline/*.png` when those exist locally (`ui:record`
+regenerates both; record from the commit whose UI you want to keep).
 
 ## Build
 
@@ -164,11 +178,44 @@ or ship it explicitly flagged for the reviewing developer.
 
 ## Architecture
 
-The engine in `src/engine` is UI-agnostic and drives both the CLI
-(`bin/beacon.mjs`) and the Electron app (`src/main`, `src/renderer`). No
-bundler and no framework — plain ES modules with a small, sandboxed preload
-bridge; the renderer never touches Node directly. `beacon-guard.mjs` is the
-canonical hook source, copied into each guarded repo.
+The engine in `src/engine` is UI-agnostic TypeScript and drives both the CLI
+(`bin/beacon.mjs`) and the Electron app (`src/main`, `src/renderer`). Bun
+bundles everything (`bun run build`) into plain JS for Node in `out/`:
+`engine.mjs` for the CLI, `guard.mjs` (the hook copied into each guarded
+repo), `main.mjs` (the Electron main process) and `preload.cjs`. Every runtime
+is Node, so this code uses Node APIs only — `bun run typecheck` enforces that.
+
+The engine is async throughout: git and gh run as child processes, so
+nothing blocks the Electron main process. The main process still runs engine
+calls one at a time, in arrival order, so concurrent requests from the UI
+never race for git's index lock. The guard and the engine share one scope
+matcher (`scope.ts`), so live flags and the pre-PR review can't disagree.
+
+The renderer is React + TypeScript (`src/renderer`), bundled for the browser
+into `out/renderer/` and rendered straight into `<body>`, so its DOM and
+`styles.css` are exactly what they were before React. App state lives in one
+small store (`store.ts`); the flows that change it are plain async functions
+(`actions.ts`). It never touches Node directly; it calls `window.beacon`, a small
+sandboxed preload bridge. Every IPC channel's argument and result is declared
+once in `src/ipc/contract.ts`, with results typed from the engine's own
+signatures; main must handle every channel and the bridge can only call
+declared ones, or the build fails to type-check. `bun run smoke` launches the
+real app on a fixture repo and drives the bridge end to end.
+
+| Module | Owns |
+| --- | --- |
+| `scope.ts` | default globs, matching, zones, reasons |
+| `flags.ts` | the guard's `flags.jsonl` log |
+| `process.ts` · `repo.ts` · `gh.ts` | running git/gh, repo facts, GitHub |
+| `diff.ts` · `status.ts` | changes vs base, reuse signal |
+| `start.ts` · `hooks.ts` | scope declaration, guard install |
+| `review.ts` · `describe.ts` · `ship.ts` | flags + revert, PR text, opening the PR |
+| `branches.ts` · `working.ts` · `stash.ts` | everyday git for the app |
+| `guard.ts` | the PreToolUse hook entry point |
+| `src/ipc/contract.ts` | every IPC channel: argument and result |
+| `src/main/main.ts` · `bridge.ts` · `preload.ts` | handlers + engine queue, the `window.beacon` API |
+| `src/renderer/store.ts` · `actions.ts` | UI state, and everything the UI does |
+| `src/renderer/components/` | top nav, list, empty/onboarding, branch view, PR/stash detail, overlays |
 
 ## Distribution (signing)
 

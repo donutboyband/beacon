@@ -1,0 +1,537 @@
+// Bun Snapshot v1, https://bun.sh/docs/test/snapshots
+
+exports[`cli usage [] 1`] = `
+{
+  "code": 0,
+  "stderr": "",
+  "stdout": 
+"\x1B[1mbeacon\x1B[0m — keeps AI coding agents inside the front end
+
+  \x1B[1mbeacon start\x1B[0m <name>         branch off the latest default branch, declare the
+                               front-end scope (.beacon/scope.json + CLAUDE.md) as the
+                               first commit, and install the flag-only Claude Code guard
+  \x1B[1mbeacon status\x1B[0m               plain-language summary of changes vs default branch
+  \x1B[1mbeacon review\x1B[0m               flagged (out-of-scope) changes on this branch, with
+                               the option to revert each one before the PR
+                               --revert <file> | --revert-all | --list
+  \x1B[1mbeacon ship\x1B[0m [--dry-run]     stage, commit, push, open an annotated PR
+                               --title "..."     override generated title
+                               --allow-flagged   open the PR even with flagged changes
+"
+,
+}
+`;
+
+exports[`cli usage [ "help" ] 1`] = `
+{
+  "code": 0,
+  "stderr": "",
+  "stdout": 
+"\x1B[1mbeacon\x1B[0m — keeps AI coding agents inside the front end
+
+  \x1B[1mbeacon start\x1B[0m <name>         branch off the latest default branch, declare the
+                               front-end scope (.beacon/scope.json + CLAUDE.md) as the
+                               first commit, and install the flag-only Claude Code guard
+  \x1B[1mbeacon status\x1B[0m               plain-language summary of changes vs default branch
+  \x1B[1mbeacon review\x1B[0m               flagged (out-of-scope) changes on this branch, with
+                               the option to revert each one before the PR
+                               --revert <file> | --revert-all | --list
+  \x1B[1mbeacon ship\x1B[0m [--dry-run]     stage, commit, push, open an annotated PR
+                               --title "..."     override generated title
+                               --allow-flagged   open the PR even with flagged changes
+"
+,
+}
+`;
+
+exports[`cli usage [ "--help" ] 1`] = `
+{
+  "code": 0,
+  "stderr": "",
+  "stdout": 
+"\x1B[1mbeacon\x1B[0m — keeps AI coding agents inside the front end
+
+  \x1B[1mbeacon start\x1B[0m <name>         branch off the latest default branch, declare the
+                               front-end scope (.beacon/scope.json + CLAUDE.md) as the
+                               first commit, and install the flag-only Claude Code guard
+  \x1B[1mbeacon status\x1B[0m               plain-language summary of changes vs default branch
+  \x1B[1mbeacon review\x1B[0m               flagged (out-of-scope) changes on this branch, with
+                               the option to revert each one before the PR
+                               --revert <file> | --revert-all | --list
+  \x1B[1mbeacon ship\x1B[0m [--dry-run]     stage, commit, push, open an annotated PR
+                               --title "..."     override generated title
+                               --allow-flagged   open the PR even with flagged changes
+"
+,
+}
+`;
+
+exports[`cli usage [ "-h" ] 1`] = `
+{
+  "code": 0,
+  "stderr": "",
+  "stdout": 
+"\x1B[1mbeacon\x1B[0m — keeps AI coding agents inside the front end
+
+  \x1B[1mbeacon start\x1B[0m <name>         branch off the latest default branch, declare the
+                               front-end scope (.beacon/scope.json + CLAUDE.md) as the
+                               first commit, and install the flag-only Claude Code guard
+  \x1B[1mbeacon status\x1B[0m               plain-language summary of changes vs default branch
+  \x1B[1mbeacon review\x1B[0m               flagged (out-of-scope) changes on this branch, with
+                               the option to revert each one before the PR
+                               --revert <file> | --revert-all | --list
+  \x1B[1mbeacon ship\x1B[0m [--dry-run]     stage, commit, push, open an annotated PR
+                               --title "..."     override generated title
+                               --allow-flagged   open the PR even with flagged changes
+"
+,
+}
+`;
+
+exports[`cli usage works outside a repo; commands don't 1`] = `
+{
+  "code": 1,
+  "stderr": 
+"\x1B[31m✗ beacon:\x1B[0m not inside a git repository
+"
+,
+  "stdout": "",
+}
+`;
+
+exports[`cli unknown command 1`] = `
+{
+  "code": 1,
+  "stderr": 
+"\x1B[31m✗ beacon:\x1B[0m unknown command "frobnicate"
+"
+,
+  "stdout": "",
+}
+`;
+
+exports[`cli start: no name 1`] = `
+{
+  "code": 1,
+  "stderr": 
+"\x1B[31m✗ beacon:\x1B[0m usage: beacon start <branch name>
+"
+,
+  "stdout": "",
+}
+`;
+
+exports[`cli start: ok 1`] = `
+{
+  "code": 0,
+  "stderr": "",
+  "stdout": 
+"\x1B[32m✓\x1B[0m on new branch \x1B[1mpolish-the-nav\x1B[0m (from origin/main).
+  \x1B[2m· wrote .beacon/scope.json — the enforced front-end scope for this branch\x1B[0m
+  \x1B[2m· created CLAUDE.md — plain-language guidance for the agent\x1B[0m
+  \x1B[2m· committed both as the branch's first commit (visible in the PR diff)\x1B[0m
+  \x1B[2m· installed the Claude Code guard — out-of-scope writes are flagged, never blocked\x1B[0m
+"
+,
+}
+`;
+
+exports[`cli start: exists 1`] = `
+{
+  "code": 1,
+  "stderr": 
+"\x1B[31m✗ beacon:\x1B[0m branch "polish-the-nav" already exists
+"
+,
+  "stdout": "",
+}
+`;
+
+exports[`cli start: guard not installed, legacy hook removed 1`] = `
+{
+  "code": 0,
+  "stderr": "",
+  "stdout": 
+"\x1B[32m✓\x1B[0m on new branch \x1B[1mx\x1B[0m (from origin/main).
+  \x1B[2m· wrote .beacon/scope.json — the enforced front-end scope for this branch\x1B[0m
+  \x1B[2m· created CLAUDE.md — plain-language guidance for the agent\x1B[0m
+  \x1B[2m· committed both as the branch's first commit (visible in the PR diff)\x1B[0m
+  \x1B[33m· guard not installed: .claude/settings.local.json is not valid JSON — fix it and re-run start\x1B[0m
+  \x1B[33m· removed the old commit-blocking pre-commit guard (Beacon flags instead)\x1B[0m
+"
+,
+}
+`;
+
+exports[`cli status: flagged branch 1`] = `
+{
+  "code": 0,
+  "stderr": "",
+  "stdout": 
+"
+\x1B[1mBranch:\x1B[0m polish-pricing   \x1B[2m(vs origin/main)\x1B[0m
+\x1B[1mDiff:\x1B[0m   7 files changed, 149 insertions(+), 3 deletions(-)
+
+\x1B[1mChanged files (11):\x1B[0m
+  \x1B[32m●\x1B[0m .beacon/scope.json \x1B[2m— added\x1B[0m
+  \x1B[32m●\x1B[0m CLAUDE.md \x1B[2m— added\x1B[0m
+  \x1B[32m●\x1B[0m docs/old.md \x1B[2m— deleted\x1B[0m
+  \x1B[33m⚠\x1B[0m src/api/prices.ts \x1B[2m— modified (out of scope)\x1B[0m
+  \x1B[33m⚠\x1B[0m src/auth/session.ts \x1B[2m— added (out of scope)\x1B[0m
+  \x1B[32m●\x1B[0m src/components/Price.tsx \x1B[2m— added\x1B[0m
+  \x1B[33m⚠\x1B[0m src/utils/fmt.ts \x1B[2m— modified (out of scope)\x1B[0m
+  \x1B[36m◆\x1B[0m .beacon/prototype/README.md \x1B[2m— added (prototype)\x1B[0m
+  \x1B[36m◆\x1B[0m .beacon/prototype/fixtures.json \x1B[2m— added (prototype)\x1B[0m
+  \x1B[33m⚠\x1B[0m src/server/cache.ts \x1B[2m— added (out of scope)\x1B[0m
+  \x1B[32m●\x1B[0m src/styles/price.css \x1B[2m— added\x1B[0m
+
+\x1B[1mReuses components:\x1B[0m Card, Badge, Stack
+\x1B[1mReuses tokens:\x1B[0m @acme/tokens, ../design-tokens/space, --brand-primary, --space-4, tokens.color.primary
+\x1B[33m2 assumption marker(s)\x1B[0m
+
+"
+,
+}
+`;
+
+exports[`cli status: no changes 1`] = `
+{
+  "code": 0,
+  "stderr": "",
+  "stdout": 
+"
+\x1B[1mBranch:\x1B[0m empty   \x1B[2m(vs origin/main)\x1B[0m
+\x1B[1mDiff:\x1B[0m   no committed changes vs base
+
+\x1B[2mNo changes yet.\x1B[0m
+"
+,
+}
+`;
+
+exports[`cli review: list, hint, revert one, revert all, all clear: list 1`] = `
+{
+  "code": 0,
+  "stderr": "",
+  "stdout": 
+"
+\x1B[1mBranch:\x1B[0m polish-pricing   \x1B[2m(vs origin/main)\x1B[0m
+\x1B[36m◆\x1B[0m Prototype in front of the backend — 2 files of real components on mock data:
+
+  \x1B[36m◆\x1B[0m .beacon/prototype/README.md \x1B[2m— added\x1B[0m
+  \x1B[36m◆\x1B[0m .beacon/prototype/fixtures.json \x1B[2m— added\x1B[0m
+
+\x1B[1mBackend work needed\x1B[0m \x1B[2m(.beacon/prototype/README.md — included in the PR):\x1B[0m
+\x1B[2m  - Needs \`GET /api/prices\` returning \`{ id, amount }[]\`
+  - FIXME: currency comes from account settings\x1B[0m
+
+\x1B[33m⚠\x1B[0m 4 of 11 changes are outside this branch's scope:
+
+  \x1B[33m⚠\x1B[0m \x1B[1msrc/api/prices.ts\x1B[0m \x1B[2m— modified\x1B[0m
+    \x1B[2mflagged <when> via Edit\x1B[0m
+    \x1B[2mit matches the denied pattern "**/api/**" — backend, auth, routing, DB, and infra are off-limits on this branch\x1B[0m
+  \x1B[33m⚠\x1B[0m \x1B[1msrc/auth/session.ts\x1B[0m \x1B[2m— added\x1B[0m
+    \x1B[2mflagged <when> via Edit\x1B[0m
+    \x1B[2mit matches the denied pattern "**/auth/**" — backend, auth, routing, DB, and infra are off-limits on this branch\x1B[0m
+  \x1B[33m⚠\x1B[0m \x1B[1msrc/utils/fmt.ts\x1B[0m \x1B[2m— modified\x1B[0m
+    \x1B[2mflagged <when> via Edit\x1B[0m
+    \x1B[2mit doesn't match any allowed front-end pattern for this branch\x1B[0m
+  \x1B[33m⚠\x1B[0m \x1B[1msrc/server/cache.ts\x1B[0m \x1B[2m— added\x1B[0m
+    \x1B[2mit matches the denied pattern "**/server/**" — backend, auth, routing, DB, and infra are off-limits on this branch\x1B[0m
+
+\x1B[2mRevert with: beacon review --revert <file>   or   beacon review --revert-all\x1B[0m
+"
+,
+}
+`;
+
+exports[`cli review: list, hint, revert one, revert all, all clear: non-tty hint 1`] = `
+{
+  "code": 0,
+  "stderr": "",
+  "stdout": 
+"
+\x1B[1mBranch:\x1B[0m polish-pricing   \x1B[2m(vs origin/main)\x1B[0m
+\x1B[36m◆\x1B[0m Prototype in front of the backend — 2 files of real components on mock data:
+
+  \x1B[36m◆\x1B[0m .beacon/prototype/README.md \x1B[2m— added\x1B[0m
+  \x1B[36m◆\x1B[0m .beacon/prototype/fixtures.json \x1B[2m— added\x1B[0m
+
+\x1B[1mBackend work needed\x1B[0m \x1B[2m(.beacon/prototype/README.md — included in the PR):\x1B[0m
+\x1B[2m  - Needs \`GET /api/prices\` returning \`{ id, amount }[]\`
+  - FIXME: currency comes from account settings\x1B[0m
+
+\x1B[33m⚠\x1B[0m 4 of 11 changes are outside this branch's scope:
+
+  \x1B[33m⚠\x1B[0m \x1B[1msrc/api/prices.ts\x1B[0m \x1B[2m— modified\x1B[0m
+    \x1B[2mflagged <when> via Edit\x1B[0m
+    \x1B[2mit matches the denied pattern "**/api/**" — backend, auth, routing, DB, and infra are off-limits on this branch\x1B[0m
+  \x1B[33m⚠\x1B[0m \x1B[1msrc/auth/session.ts\x1B[0m \x1B[2m— added\x1B[0m
+    \x1B[2mflagged <when> via Edit\x1B[0m
+    \x1B[2mit matches the denied pattern "**/auth/**" — backend, auth, routing, DB, and infra are off-limits on this branch\x1B[0m
+  \x1B[33m⚠\x1B[0m \x1B[1msrc/utils/fmt.ts\x1B[0m \x1B[2m— modified\x1B[0m
+    \x1B[2mflagged <when> via Edit\x1B[0m
+    \x1B[2mit doesn't match any allowed front-end pattern for this branch\x1B[0m
+  \x1B[33m⚠\x1B[0m \x1B[1msrc/server/cache.ts\x1B[0m \x1B[2m— added\x1B[0m
+    \x1B[2mit matches the denied pattern "**/server/**" — backend, auth, routing, DB, and infra are off-limits on this branch\x1B[0m
+
+\x1B[2mRevert with: beacon review --revert <file>   or   beacon review --revert-all\x1B[0m
+"
+,
+}
+`;
+
+exports[`cli review: list, hint, revert one, revert all, all clear: revert unflagged 1`] = `
+{
+  "code": 1,
+  "stderr": 
+"\x1B[31m✗ beacon:\x1B[0m "src/components/Price.tsx" isn't a flagged file on this branch
+"
+,
+  "stdout": 
+"
+\x1B[1mBranch:\x1B[0m polish-pricing   \x1B[2m(vs origin/main)\x1B[0m
+\x1B[36m◆\x1B[0m Prototype in front of the backend — 2 files of real components on mock data:
+
+  \x1B[36m◆\x1B[0m .beacon/prototype/README.md \x1B[2m— added\x1B[0m
+  \x1B[36m◆\x1B[0m .beacon/prototype/fixtures.json \x1B[2m— added\x1B[0m
+
+\x1B[1mBackend work needed\x1B[0m \x1B[2m(.beacon/prototype/README.md — included in the PR):\x1B[0m
+\x1B[2m  - Needs \`GET /api/prices\` returning \`{ id, amount }[]\`
+  - FIXME: currency comes from account settings\x1B[0m
+
+\x1B[33m⚠\x1B[0m 4 of 11 changes are outside this branch's scope:
+
+  \x1B[33m⚠\x1B[0m \x1B[1msrc/api/prices.ts\x1B[0m \x1B[2m— modified\x1B[0m
+    \x1B[2mflagged <when> via Edit\x1B[0m
+    \x1B[2mit matches the denied pattern "**/api/**" — backend, auth, routing, DB, and infra are off-limits on this branch\x1B[0m
+  \x1B[33m⚠\x1B[0m \x1B[1msrc/auth/session.ts\x1B[0m \x1B[2m— added\x1B[0m
+    \x1B[2mflagged <when> via Edit\x1B[0m
+    \x1B[2mit matches the denied pattern "**/auth/**" — backend, auth, routing, DB, and infra are off-limits on this branch\x1B[0m
+  \x1B[33m⚠\x1B[0m \x1B[1msrc/utils/fmt.ts\x1B[0m \x1B[2m— modified\x1B[0m
+    \x1B[2mflagged <when> via Edit\x1B[0m
+    \x1B[2mit doesn't match any allowed front-end pattern for this branch\x1B[0m
+  \x1B[33m⚠\x1B[0m \x1B[1msrc/server/cache.ts\x1B[0m \x1B[2m— added\x1B[0m
+    \x1B[2mit matches the denied pattern "**/server/**" — backend, auth, routing, DB, and infra are off-limits on this branch\x1B[0m
+
+"
+,
+}
+`;
+
+exports[`cli review: list, hint, revert one, revert all, all clear: revert one 1`] = `
+{
+  "code": 0,
+  "stderr": "",
+  "stdout": 
+"
+\x1B[1mBranch:\x1B[0m polish-pricing   \x1B[2m(vs origin/main)\x1B[0m
+\x1B[36m◆\x1B[0m Prototype in front of the backend — 2 files of real components on mock data:
+
+  \x1B[36m◆\x1B[0m .beacon/prototype/README.md \x1B[2m— added\x1B[0m
+  \x1B[36m◆\x1B[0m .beacon/prototype/fixtures.json \x1B[2m— added\x1B[0m
+
+\x1B[1mBackend work needed\x1B[0m \x1B[2m(.beacon/prototype/README.md — included in the PR):\x1B[0m
+\x1B[2m  - Needs \`GET /api/prices\` returning \`{ id, amount }[]\`
+  - FIXME: currency comes from account settings\x1B[0m
+
+\x1B[33m⚠\x1B[0m 4 of 11 changes are outside this branch's scope:
+
+  \x1B[33m⚠\x1B[0m \x1B[1msrc/api/prices.ts\x1B[0m \x1B[2m— modified\x1B[0m
+    \x1B[2mflagged <when> via Edit\x1B[0m
+    \x1B[2mit matches the denied pattern "**/api/**" — backend, auth, routing, DB, and infra are off-limits on this branch\x1B[0m
+  \x1B[33m⚠\x1B[0m \x1B[1msrc/auth/session.ts\x1B[0m \x1B[2m— added\x1B[0m
+    \x1B[2mflagged <when> via Edit\x1B[0m
+    \x1B[2mit matches the denied pattern "**/auth/**" — backend, auth, routing, DB, and infra are off-limits on this branch\x1B[0m
+  \x1B[33m⚠\x1B[0m \x1B[1msrc/utils/fmt.ts\x1B[0m \x1B[2m— modified\x1B[0m
+    \x1B[2mflagged <when> via Edit\x1B[0m
+    \x1B[2mit doesn't match any allowed front-end pattern for this branch\x1B[0m
+  \x1B[33m⚠\x1B[0m \x1B[1msrc/server/cache.ts\x1B[0m \x1B[2m— added\x1B[0m
+    \x1B[2mit matches the denied pattern "**/server/**" — backend, auth, routing, DB, and infra are off-limits on this branch\x1B[0m
+
+\x1B[32m✓\x1B[0m reverted 1 out-of-scope change\x1B[2m · undone with a new commit\x1B[0m
+  \x1B[2m·\x1B[0m src/api/prices.ts
+"
+,
+}
+`;
+
+exports[`cli review: list, hint, revert one, revert all, all clear: revert all 1`] = `
+{
+  "code": 0,
+  "stderr": "",
+  "stdout": 
+"
+\x1B[1mBranch:\x1B[0m polish-pricing   \x1B[2m(vs origin/main)\x1B[0m
+\x1B[36m◆\x1B[0m Prototype in front of the backend — 2 files of real components on mock data:
+
+  \x1B[36m◆\x1B[0m .beacon/prototype/README.md \x1B[2m— added\x1B[0m
+  \x1B[36m◆\x1B[0m .beacon/prototype/fixtures.json \x1B[2m— added\x1B[0m
+
+\x1B[1mBackend work needed\x1B[0m \x1B[2m(.beacon/prototype/README.md — included in the PR):\x1B[0m
+\x1B[2m  - Needs \`GET /api/prices\` returning \`{ id, amount }[]\`
+  - FIXME: currency comes from account settings\x1B[0m
+
+\x1B[33m⚠\x1B[0m 3 of 10 changes are outside this branch's scope:
+
+  \x1B[33m⚠\x1B[0m \x1B[1msrc/auth/session.ts\x1B[0m \x1B[2m— added\x1B[0m
+    \x1B[2mflagged <when> via Edit\x1B[0m
+    \x1B[2mit matches the denied pattern "**/auth/**" — backend, auth, routing, DB, and infra are off-limits on this branch\x1B[0m
+  \x1B[33m⚠\x1B[0m \x1B[1msrc/utils/fmt.ts\x1B[0m \x1B[2m— modified\x1B[0m
+    \x1B[2mflagged <when> via Edit\x1B[0m
+    \x1B[2mit doesn't match any allowed front-end pattern for this branch\x1B[0m
+  \x1B[33m⚠\x1B[0m \x1B[1msrc/server/cache.ts\x1B[0m \x1B[2m— added\x1B[0m
+    \x1B[2mit matches the denied pattern "**/server/**" — backend, auth, routing, DB, and infra are off-limits on this branch\x1B[0m
+
+\x1B[32m✓\x1B[0m reverted 3 out-of-scope changes\x1B[2m · undone with a new commit\x1B[0m
+  \x1B[2m·\x1B[0m src/auth/session.ts
+  \x1B[2m·\x1B[0m src/utils/fmt.ts
+  \x1B[2m·\x1B[0m src/server/cache.ts
+"
+,
+}
+`;
+
+exports[`cli review: list, hint, revert one, revert all, all clear: all clear 1`] = `
+{
+  "code": 0,
+  "stderr": "",
+  "stdout": 
+"
+\x1B[1mBranch:\x1B[0m polish-pricing   \x1B[2m(vs origin/main)\x1B[0m
+\x1B[36m◆\x1B[0m Prototype in front of the backend — 2 files of real components on mock data:
+
+  \x1B[36m◆\x1B[0m .beacon/prototype/README.md \x1B[2m— added\x1B[0m
+  \x1B[36m◆\x1B[0m .beacon/prototype/fixtures.json \x1B[2m— added\x1B[0m
+
+\x1B[1mBackend work needed\x1B[0m \x1B[2m(.beacon/prototype/README.md — included in the PR):\x1B[0m
+\x1B[2m  - Needs \`GET /api/prices\` returning \`{ id, amount }[]\`
+  - FIXME: currency comes from account settings\x1B[0m
+
+\x1B[32m✓\x1B[0m All 7 changes on this branch are inside the declared scope (or the prototype zone).
+
+"
+,
+}
+`;
+
+exports[`cli review on a branch with only one change 1`] = `
+{
+  "code": 0,
+  "stderr": "",
+  "stdout": 
+"
+\x1B[1mBranch:\x1B[0m one   \x1B[2m(vs origin/main)\x1B[0m
+\x1B[33m⚠\x1B[0m 1 of 1 change is outside this branch's scope:
+
+  \x1B[33m⚠\x1B[0m \x1B[1msrc/api/x.ts\x1B[0m \x1B[2m— added\x1B[0m
+    \x1B[2mit matches the denied pattern "**/api/**" — backend, auth, routing, DB, and infra are off-limits on this branch\x1B[0m
+
+\x1B[2mRevert with: beacon review --revert <file>   or   beacon review --revert-all\x1B[0m
+"
+,
+}
+`;
+
+exports[`cli ship: dry run, blocked, allowed with a title: dry run 1`] = `
+{
+  "code": 0,
+  "stderr": "",
+  "stdout": 
+"
+\x1B[1m── DRY RUN ──\x1B[0m  (deterministic)
+\x1B[1mTitle:\x1B[0m Polish Pricing
+
+## What changed
+
+- **.beacon/scope.json**: 1 file (added)
+- **CLAUDE.md**: 1 file (added)
+- **docs/old.md**: 1 file (deleted)
+- **src/api**: 1 file (modified)
+- **src/auth**: 1 file (added)
+- **src/components**: 1 file (added)
+- **src/utils**: 1 file (modified)
+- **.beacon/prototype**: 2 files (added, added)
+- **src/server**: 1 file (added)
+- **src/styles**: 1 file (added)
+
+<details><summary>All changed files (11)</summary>
+
+- \`.beacon/scope.json\` — added
+- \`CLAUDE.md\` — added
+- \`docs/old.md\` — deleted
+- \`src/api/prices.ts\` — modified  ⚠️ out of scope
+- \`src/auth/session.ts\` — added  ⚠️ out of scope
+- \`src/components/Price.tsx\` — added
+- \`src/utils/fmt.ts\` — modified  ⚠️ out of scope
+- \`.beacon/prototype/README.md\` — added  ◆ prototype
+- \`.beacon/prototype/fixtures.json\` — added  ◆ prototype
+- \`src/server/cache.ts\` — added  ⚠️ out of scope
+- \`src/styles/price.css\` — added
+</details>
+
+## Prototype (in front of the backend)
+
+This branch ships a working prototype under \`.beacon/prototype/\` — the repo's
+real components rendered on mock data, instead of touching the backend.
+
+- \`.beacon/prototype/README.md\` — added
+- \`.beacon/prototype/fixtures.json\` — added
+
+**Backend work needed to make it real:**
+
+- Needs \`GET /api/prices\` returning \`{ id, amount }[]\`
+- FIXME: currency comes from account settings
+
+## Why this approach
+
+- Reuses existing components: \`Card\`, \`Badge\`, \`Stack\`
+- Reuses design tokens / variables: \`@acme/tokens\`, \`../design-tokens/space\`, \`--brand-primary\`, \`--space-4\`, \`tokens.color.primary\`
+
+## Flag for review
+
+- **Flagged by Beacon — outside this branch's declared scope** (see \`.beacon/scope.json\`):
+  - \`src/api/prices.ts\` (modified)
+  - \`src/auth/session.ts\` (added)
+  - \`src/utils/fmt.ts\` (modified)
+  - \`src/server/cache.ts\` (added)
+- **Assumption markers found**:
+  - \`// TODO: assume monthly billing for now\`
+  - \`- FIXME: currency comes from account settings\`
+- **1 file(s) deleted** — confirm nothing depends on them.
+
+---
+_Generated by Beacon. In-scope files: 5 · prototype: 2 · flagged (out of scope): 4._
+
+\x1B[2m(nothing committed, pushed, or opened.)\x1B[0m
+"
+,
+}
+`;
+
+exports[`cli ship: dry run, blocked, allowed with a title: blocked 1`] = `
+{
+  "code": 1,
+  "stderr": 
+"\x1B[31m✗ beacon:\x1B[0m blocked: 4 file(s) are outside this branch's declared scope. Review them (beacon review) or ship with them flagged:
+  src/api/prices.ts
+  src/auth/session.ts
+  src/utils/fmt.ts
+  src/server/cache.ts
+"
+,
+  "stdout": "",
+}
+`;
+
+exports[`cli ship: dry run, blocked, allowed with a title: shipped 1`] = `
+{
+  "code": 0,
+  "stderr": "",
+  "stdout": 
+"\x1B[32m✓\x1B[0m committed=true pushed=true
+\x1B[32m✓\x1B[0m PR opened (gh): https://github.com/test/repo/pull/1
+"
+,
+}
+`;
