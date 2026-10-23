@@ -9,22 +9,22 @@ import { readFlagLog, runGuard } from "./support/guard.js";
 
 afterAll(cleanupRepos);
 
-function guarded(name = "guarded") {
+async function guarded(name = "guarded") {
   const repo = makeRepo();
-  engine.start({ cwd: repo.cwd, name });
+  await engine.start({ cwd: repo.cwd, name });
   return repo;
 }
 const write = (repo, file, extra = {}) => runGuard(repo, { tool_input: { file_path: join(repo.cwd, file) }, ...extra });
 
 describe("guard", () => {
-  test("in-scope writes pass silently", () => {
-    const repo = guarded();
+  test("in-scope writes pass silently", async () => {
+    const repo = await guarded();
     expect(write(repo, "src/components/A.tsx")).toEqual({ code: 0, stdout: null, stderr: "" });
     expect(readFlagLog(repo)).toEqual([]);
   });
 
-  test("out-of-scope writes are flagged, logged, and still allowed", () => {
-    const repo = guarded();
+  test("out-of-scope writes are flagged, logged, and still allowed", async () => {
+    const repo = await guarded();
     const r = write(repo, "src/auth/login.ts", { tool_name: "MultiEdit" });
     expect(r.code).toBe(0);
     expect(r.stdout.hookSpecificOutput.permissionDecision).toBeUndefined();
@@ -37,16 +37,16 @@ describe("guard", () => {
     expect(readFlagLog(repo).length).toBe(2);
   });
 
-  test("relative paths resolve against the payload cwd; notebooks use notebook_path", () => {
-    const repo = guarded();
+  test("relative paths resolve against the payload cwd; notebooks use notebook_path", async () => {
+    const repo = await guarded();
     expect(runGuard(repo, { cwd: join(repo.cwd, "src"), tool_input: { file_path: "api/x.ts" } }).stdout).not.toBeNull();
     expect(readFlagLog(repo)[0].file).toBe("src/api/x.ts");
     expect(runGuard(repo, { tool_name: "NotebookEdit", tool_input: { notebook_path: join(repo.cwd, "db/nb.ipynb") } }).stdout).not.toBeNull();
     expect(readFlagLog(repo)[1]).toMatchObject({ file: "db/nb.ipynb", tool: "NotebookEdit" });
   });
 
-  test("a custom prototype zone steers the agent there", () => {
-    const repo = guarded();
+  test("a custom prototype zone steers the agent there", async () => {
+    const repo = await guarded();
     const scope = JSON.parse(repo.read(".beacon/scope.json"));
     repo.write(".beacon/scope.json", JSON.stringify({ ...scope, prototype: ["mocks/**"] }));
     expect(write(repo, "mocks/api.ts").stdout).toBeNull();
@@ -64,28 +64,28 @@ describe("guard", () => {
     ["a scope declared for another branch", (r) => { r.git("switch", "-q", "-c", "elsewhere"); return write(r, "src/api/x.ts"); }],
     ["a malformed scope.json", (r) => { r.write(".beacon/scope.json", "{ nope"); return write(r, "src/api/x.ts"); }],
     ["no scope.json", (r) => { r.rm(".beacon/scope.json"); return write(r, "src/api/x.ts"); }],
-  ])("stays silent for %s", (_l, act) => {
-    const repo = guarded();
+  ])("stays silent for %s", async (_l, act) => {
+    const repo = await guarded();
     expect(act(repo)).toEqual({ code: 0, stdout: null, stderr: "" });
     expect(readFlagLog(repo)).toEqual([]);
   });
 
-  test("a scope.json with no branch applies on any branch", () => {
-    const repo = guarded();
+  test("a scope.json with no branch applies on any branch", async () => {
+    const repo = await guarded();
     const { branch, ...scope } = JSON.parse(repo.read(".beacon/scope.json"));
     repo.write(".beacon/scope.json", JSON.stringify(scope));
     repo.git("switch", "-q", "-c", "elsewhere");
     expect(write(repo, "src/api/x.ts").stdout).not.toBeNull();
   });
 
-  test("a scope.json without allow treats everything as out of scope", () => {
-    const repo = guarded();
+  test("a scope.json without allow treats everything as out of scope", async () => {
+    const repo = await guarded();
     repo.write(".beacon/scope.json", JSON.stringify({ branch: "guarded" }));
     expect(write(repo, "src/components/A.tsx").stdout).not.toBeNull();
   });
 
-  test("a failing flag log never breaks the write", () => {
-    const repo = guarded();
+  test("a failing flag log never breaks the write", async () => {
+    const repo = await guarded();
     mkdirSync(join(repo.gitDir(), "beacon", "flags.jsonl"));
     const r = write(repo, "src/api/x.ts");
     expect(r.code).toBe(0);

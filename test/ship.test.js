@@ -35,7 +35,7 @@ const json = (status, data) => new Response(JSON.stringify(data), { status, head
 
 describe("ship --dry-run", () => {
   test("builds the deterministic description with zero side effects", async () => {
-    const repo = flaggedBranch();
+    const repo = await flaggedBranch();
     const head = repo.git("rev-parse", "HEAD");
     const tree = repo.git("status", "--porcelain");
     const r = await engine.ship({ cwd: repo.cwd, dryRun: true });
@@ -48,7 +48,7 @@ describe("ship --dry-run", () => {
 
   test("title override; clean branch with no risks", async () => {
     const repo = makeRepo();
-    engine.start({ cwd: repo.cwd, name: "feat/tidy-buttons" });
+    await engine.start({ cwd: repo.cwd, name: "feat/tidy-buttons" });
     repo.commit("tidy", { "src/components/Button.tsx": "export const Button = () => <button />;\n" });
     const r = await engine.ship({ cwd: repo.cwd, dryRun: true, title: "Tidy the buttons" });
     expect(r.annotation.title).toBe("Tidy the buttons");
@@ -58,7 +58,7 @@ describe("ship --dry-run", () => {
 
   test("prototype without notes asks the author", async () => {
     const repo = makeRepo();
-    engine.start({ cwd: repo.cwd, name: "proto" });
+    await engine.start({ cwd: repo.cwd, name: "proto" });
     repo.write(".beacon/prototype/Mock.tsx");
     const r = await engine.ship({ cwd: repo.cwd, dryRun: true });
     expect(r.annotation.body).toContain("_(no `.beacon/prototype/README.md` found — ask the author what the mocks stand in for.)_");
@@ -74,7 +74,7 @@ describe("ship --dry-run", () => {
 
 describe("ship", () => {
   test("refuses with flagged files unless allowed, touching nothing", async () => {
-    const repo = flaggedBranch();
+    const repo = await flaggedBranch();
     const head = repo.git("rev-parse", "HEAD");
     await expect(engine.ship({ cwd: repo.cwd })).rejects.toThrow(
       "blocked: 4 file(s) are outside this branch's declared scope. Review them (beacon review) or ship with them flagged:\n  src/api/prices.ts\n  src/auth/session.ts\n  src/utils/fmt.ts\n  src/server/cache.ts",
@@ -83,7 +83,7 @@ describe("ship", () => {
   });
 
   test("commits everything, pushes, and opens the PR through gh", async () => {
-    const repo = flaggedBranch();
+    const repo = await flaggedBranch();
     const r = await engine.ship({ cwd: repo.cwd, allowFlagged: true });
     expect(normalize(r, repo)).toMatchSnapshot();
     expect(repo.git("status", "--porcelain")).toBe("");
@@ -95,7 +95,7 @@ describe("ship", () => {
 
   test("an already-committed branch pushes without a new commit; token scopes gh", async () => {
     const repo = makeRepo();
-    engine.start({ cwd: repo.cwd, name: "done" });
+    await engine.start({ cwd: repo.cwd, name: "done" });
     repo.commit("work", { "src/components/A.tsx": "a\n" });
     const r = await engine.ship({ cwd: repo.cwd, githubToken: "tok123", title: "Done" });
     expect(r.committed).toBe(false);
@@ -104,7 +104,7 @@ describe("ship", () => {
   });
 
   test("falls back to the REST API when gh isn't signed in", async () => {
-    const repo = flaggedBranch();
+    const repo = await flaggedBranch();
     process.env.FAKE_GH_MODE = "unauthed";
     const calls = mockFetch(() => json(201, { html_url: "https://github.com/test/repo/pull/7" }));
     const r = await engine.ship({ cwd: repo.cwd, allowFlagged: true, githubToken: "tok" });
@@ -116,7 +116,7 @@ describe("ship", () => {
   });
 
   test("REST errors surface with status and message", async () => {
-    const repo = flaggedBranch();
+    const repo = await flaggedBranch();
     process.env.FAKE_GH_MODE = "missing";
     mockFetch(() => json(422, { message: "Validation Failed" }));
     await expect(engine.ship({ cwd: repo.cwd, allowFlagged: true, githubToken: "tok" }))
@@ -124,13 +124,13 @@ describe("ship", () => {
   });
 
   test("no gh and no token", async () => {
-    const repo = flaggedBranch();
+    const repo = await flaggedBranch();
     process.env.FAKE_GH_MODE = "missing";
     await expect(engine.ship({ cwd: repo.cwd, allowFlagged: true })).rejects.toThrow("no gh auth and no GitHub token — cannot open a PR");
   });
 
   test("gh pr create failure", async () => {
-    const repo = flaggedBranch();
+    const repo = await flaggedBranch();
     process.env.FAKE_GH_MODE = "pr-fail";
     await expect(engine.ship({ cwd: repo.cwd, allowFlagged: true })).rejects.toThrow("gh pr create failed: pull request create failed");
   });
@@ -150,7 +150,7 @@ describe("LLM description", () => {
   const llmReply = (text) => json(200, { content: [{ type: "text", text }] });
 
   test("uses Claude's title and body when the key is set", async () => {
-    const repo = flaggedBranch();
+    const repo = await flaggedBranch();
     const calls = mockFetch(() => llmReply('```json\n{"title":"Polish pricing","body":"## What changed\\n\\nStuff."}\n```'));
     const p = await engine.plan({ cwd: repo.cwd, anthropicKey: "sk-test" });
     expect(p.annotation).toEqual({
@@ -166,7 +166,7 @@ describe("LLM description", () => {
   });
 
   test("model override", async () => {
-    const repo = flaggedBranch();
+    const repo = await flaggedBranch();
     const calls = mockFetch(() => llmReply('{"title":"T","body":"B"}'));
     const p = await engine.plan({ cwd: repo.cwd, anthropicKey: "k", model: "claude-opus-5-5" });
     expect(calls[0].body.model).toBe("claude-opus-5-5");
@@ -179,13 +179,13 @@ describe("LLM description", () => {
     ["missing fields", () => llmReply('{"title":"only"}')],
     ["a network failure", () => { throw new Error("offline"); }],
   ])("falls back to deterministic on %s", async (_l, handler) => {
-    const repo = flaggedBranch();
+    const repo = await flaggedBranch();
     mockFetch(handler);
     expect((await engine.plan({ cwd: repo.cwd, anthropicKey: "k" })).annotation.source).toBe("deterministic");
   });
 
   test("no key, no request", async () => {
-    const repo = flaggedBranch();
+    const repo = await flaggedBranch();
     const calls = mockFetch(() => json(200, {}));
     expect((await engine.plan({ cwd: repo.cwd })).annotation.source).toBe("deterministic");
     expect(calls.length).toBe(0);

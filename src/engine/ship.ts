@@ -8,7 +8,7 @@ import { currentBranch, defaultBranch, ownerRepo, requireRepo } from "./repo.ts"
 
 async function createPrViaRest({ cwd, title, body, base, head, token }: PrRequest): Promise<string> {
   if (!token) throw new Error("no gh auth and no GitHub token — cannot open a PR");
-  const or = ownerRepo(cwd);
+  const or = await ownerRepo(cwd);
   if (!or) throw new Error("could not parse owner/repo from origin remote");
   const res = await fetch(`https://api.github.com/repos/${or}/pulls`, {
     method: "POST",
@@ -38,9 +38,9 @@ export interface ShipOptions {
 // dryRun: returns {branch, defaultBranch, files, annotation} with zero side effects.
 // real:   stages, commits, pushes, opens PR. githubToken scopes the gh/REST call.
 export async function ship({ cwd, dryRun = false, title, anthropicKey, model, githubToken, allowFlagged = false }: ShipOptions = {}) {
-  requireRepo(cwd);
-  const branch = currentBranch(cwd);
-  const def = defaultBranch(cwd);
+  await requireRepo(cwd);
+  const branch = await currentBranch(cwd);
+  const def = await defaultBranch(cwd);
   if (!branch) throw new Error("detached HEAD — checkout a branch first");
   if (branch === def) throw new Error(`on ${def} — run start first; Beacon won't ship to the default branch`);
 
@@ -64,21 +64,21 @@ export async function ship({ cwd, dryRun = false, title, anthropicKey, model, gi
   }
 
   // Stage + commit.
-  gitMust(cwd, "add", "-A");
+  await gitMust(cwd, "add", "-A");
   let committed = false;
-  if (gitFor(cwd)("diff", "--cached", "--quiet").code !== 0) {
+  if ((await gitFor(cwd)("diff", "--cached", "--quiet")).code !== 0) {
     const msg = [finalTitle, "", ...p.files.map((f) => `- ${f.status}: ${f.file}`)].join("\n");
-    gitMust(cwd, "commit", "-F", tempFile("msg.txt", msg));
+    await gitMust(cwd, "commit", "-F", await tempFile("msg.txt", msg));
     committed = true;
   }
 
   // Push.
-  gitMust(cwd, "push", "-u", "origin", branch);
+  await gitMust(cwd, "push", "-u", "origin", branch);
 
   // Open PR (gh scoped to token, else REST).
-  const useGh = ghReady(githubToken);
+  const useGh = await ghReady(githubToken);
   const pr = { cwd, title: finalTitle, body: p.annotation.body, base: def, head: branch, token: githubToken };
-  const prUrl = useGh ? createPrViaGh(pr) : await createPrViaRest(pr);
+  const prUrl = useGh ? await createPrViaGh(pr) : await createPrViaRest(pr);
 
   return { dryRun: false, branch, defaultBranch: def, committed, pushed: true, prUrl, annotation: { ...p.annotation, title: finalTitle }, via: useGh ? "gh" : "rest" };
 }

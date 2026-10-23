@@ -5,16 +5,16 @@ import { gitFor, run } from "./process.ts";
 import { currentBranch, defaultBranch, loadScope, requireRepo } from "./repo.ts";
 import type { StatusResult } from "./types.ts";
 
-export function status({ cwd, fetch: doFetch = true }: { cwd?: string; fetch?: boolean } = {}): StatusResult {
-  requireRepo(cwd);
-  const branch = currentBranch(cwd);
+export async function status({ cwd, fetch: doFetch = true }: { cwd?: string; fetch?: boolean } = {}): Promise<StatusResult> {
+  await requireRepo(cwd);
+  const branch = await currentBranch(cwd);
   if (!branch) throw new Error("detached HEAD — checkout a branch first");
-  const def = defaultBranch(cwd);
-  if (doFetch) run("git", ["fetch", "origin", def], { cwd });
-  const cfg = loadScope(cwd);
-  const base = baseRef(cwd, def);
-  const files = changedFiles(cwd, base, cfg);
-  const signal = analyzeAddedLines(fullDiff(cwd, base));
-  const stat = gitFor(cwd)("diff", "--shortstat", base).stdout || "";
+  const def = await defaultBranch(cwd);
+  if (doFetch) await run("git", ["fetch", "origin", def], { cwd });
+  const cfg = await loadScope(cwd);
+  const base = await baseRef(cwd, def);
+  const files = await changedFiles(cwd, base, cfg);
+  const signal = analyzeAddedLines(await fullDiff(cwd, base));
+  const stat = (await gitFor(cwd)("diff", "--shortstat", base)).stdout || "";
   return { branch, defaultBranch: def, files, signal, stat };
 }

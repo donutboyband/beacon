@@ -1,7 +1,8 @@
-// Beacon engine — pure logic, no console output, no process.exit.
-// Every function takes an options object (always including `cwd`, the repo to
-// operate on) and RETURNS structured data or throws an Error. Both the CLI and
-// the Electron app consume this module (built to out/engine.mjs).
+// Beacon engine — pure logic, no console output, no process.exit, and never
+// blocking: git and gh run as child processes, so every function is async.
+// Each takes an options object (always including `cwd`, the repo to operate
+// on) and RESOLVES to structured data or rejects with an Error. Both the CLI
+// and the Electron app consume this module (built to out/engine.mjs).
 
 export { isRepo, currentBranch, defaultBranch, workingTreeDirty, ownerRepo } from "./repo.ts";
 export { ghReady, ghIdentity, ghStatus, listPullRequests, pullRequestDetail } from "./gh.ts";

@@ -172,13 +172,23 @@ or ship it explicitly flagged for the reviewing developer.
 
 The engine in `src/engine` is UI-agnostic TypeScript and drives both the CLI
 (`bin/beacon.mjs`) and the Electron app (`src/main`, `src/renderer`). Bun
-bundles it (`bun run build`) into plain ESM for Node in `out/`: `engine.mjs`
-for the app and CLI, and `guard.mjs`, the hook copied into each guarded repo.
-Both runtimes are Node, so the engine uses Node APIs only — `bun run
-typecheck` enforces that. The guard and the engine share one scope matcher
-(`scope.ts`), so live flags and the pre-PR review can't disagree. The
-renderer never touches Node directly; it goes through a small, sandboxed
-preload bridge.
+bundles everything (`bun run build`) into plain JS for Node in `out/`:
+`engine.mjs` for the CLI, `guard.mjs` (the hook copied into each guarded
+repo), `main.mjs` (the Electron main process) and `preload.cjs`. Every runtime
+is Node, so this code uses Node APIs only — `bun run typecheck` enforces that.
+
+The engine is async throughout: git and gh run as child processes, so
+nothing blocks the Electron main process. The main process still runs engine
+calls one at a time, in arrival order, so concurrent requests from the UI
+never race for git's index lock. The guard and the engine share one scope
+matcher (`scope.ts`), so live flags and the pre-PR review can't disagree.
+
+The renderer never touches Node directly; it calls `window.beacon`, a small
+sandboxed preload bridge. Every IPC channel's argument and result is declared
+once in `src/ipc/contract.ts`, with results typed from the engine's own
+signatures; main must handle every channel and the bridge can only call
+declared ones, or the build fails to type-check. `bun run smoke` launches the
+real app on a fixture repo and drives the bridge end to end.
 
 | Module | Owns |
 | --- | --- |
@@ -190,6 +200,8 @@ preload bridge.
 | `review.ts` · `describe.ts` · `ship.ts` | flags + revert, PR text, opening the PR |
 | `branches.ts` · `working.ts` · `stash.ts` | everyday git for the app |
 | `guard.ts` | the PreToolUse hook entry point |
+| `src/ipc/contract.ts` | every IPC channel: argument and result |
+| `src/main/main.ts` · `bridge.ts` · `preload.ts` | handlers + engine queue, the `window.beacon` API |
 
 ## Distribution (signing)
 

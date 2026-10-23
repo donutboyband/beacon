@@ -2,10 +2,10 @@
 // .beacon/scope.json plus a plain-language CLAUDE.md section, committed as
 // the branch's FIRST commit — then install the guard.
 
-import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
+import { mkdir, readFile, writeFile } from "node:fs/promises";
 import { join } from "node:path";
 import { installGuard, removeLegacyGuard } from "./hooks.ts";
-import { gitFor, gitMust } from "./process.ts";
+import { exists, gitFor, gitMust } from "./process.ts";
 import { defaultBranch, repoRoot, requireRepo, workingTreeDirty } from "./repo.ts";
 import { DEFAULT_ALLOW, DEFAULT_DENY, DEFAULT_PROTOTYPE, SCOPE_FILE } from "./scope.ts";
 
@@ -17,9 +17,9 @@ export function slugify(name: unknown): string {
 
 // (Re)write .beacon/scope.json for this branch. Always rewritten on start so a
 // scope.json inherited from a merged branch never leaks onto a new one.
-export function writeScope({ cwd, branch, task }: { cwd?: string; branch?: string; task?: string } = {}) {
-  const root = repoRoot(cwd);
-  mkdirSync(join(root, ".beacon"), { recursive: true });
+export async function writeScope({ cwd, branch, task }: { cwd?: string; branch?: string; task?: string } = {}) {
+  const root = await repoRoot(cwd);
+  await mkdir(join(root, ".beacon"), { recursive: true });
   const scope = {
     _comment:
       "Beacon branch scope — the enforced rule for this branch/task. Edits may touch files matching `allow` (the front end); `deny` always wins (backend, auth, routing, DB schema, API handlers, infra config). Beacon's Claude Code PreToolUse hook checks every file write against this: out-of-scope writes are flagged (never blocked) and revertable via `beacon review` before the PR goes out. `prototype` paths are the mock zone: when the UI needs backend behaviour, it gets prototyped there against fixtures instead of touching the real backend. Tune the globs per repo.",
@@ -30,7 +30,7 @@ export function writeScope({ cwd, branch, task }: { cwd?: string; branch?: strin
     deny: DEFAULT_DENY,
     prototype: DEFAULT_PROTOTYPE,
   };
-  writeFileSync(join(root, SCOPE_FILE), `${JSON.stringify(scope, null, 2)}\n`);
+  await writeFile(join(root, SCOPE_FILE), `${JSON.stringify(scope, null, 2)}\n`);
   return { path: join(root, SCOPE_FILE) };
 }
 
@@ -72,21 +72,21 @@ ${CLAUDE_END}`;
 
 // Append (or refresh) the Beacon section in CLAUDE.md; create the file if the
 // repo doesn't have one. Marker-delimited so re-running replaces, never stacks.
-export function writeClaudeMd({ cwd, branch }: { cwd?: string; branch?: string } = {}) {
-  const root = repoRoot(cwd);
+export async function writeClaudeMd({ cwd, branch }: { cwd?: string; branch?: string } = {}) {
+  const root = await repoRoot(cwd);
   const path = join(root, "CLAUDE.md");
   const section = claudeSection(branch);
-  if (!existsSync(path)) {
-    writeFileSync(path, `${section}\n`);
+  if (!(await exists(path))) {
+    await writeFile(path, `${section}\n`);
     return { path, created: true };
   }
-  const cur = readFileSync(path, "utf8");
+  const cur = await readFile(path, "utf8");
   const si = cur.indexOf(CLAUDE_START);
   const ei = cur.indexOf(CLAUDE_END);
   const next = si !== -1 && ei !== -1
     ? cur.slice(0, si) + section + cur.slice(ei + CLAUDE_END.length)
     : `${cur.replace(/\n*$/, "\n\n")}${section}\n`;
-  writeFileSync(path, next);
+  await writeFile(path, next);
   return { path, created: false };
 }
 
@@ -95,33 +95,33 @@ export function writeClaudeMd({ cwd, branch }: { cwd?: string; branch?: string }
 // Create the branch off the latest default branch, declare its scope, commit
 // both as the branch's FIRST commit — the declaration shows in the PR diff
 // before any change does — then install the local Claude Code guard.
-export function start({ cwd, name }: { cwd?: string; name?: string }) {
-  requireRepo(cwd);
+export async function start({ cwd, name }: { cwd?: string; name?: string }) {
+  await requireRepo(cwd);
   const slug = slugify(name);
   if (!slug) throw new Error(`could not derive a branch name from "${name}"`);
-  if (workingTreeDirty(cwd)) throw new Error("working tree has uncommitted changes — commit or stash first");
-  const def = defaultBranch(cwd);
-  gitMust(cwd, "fetch", "origin", def);
-  if (gitFor(cwd)("show-ref", "--verify", `refs/heads/${slug}`).code === 0) {
+  if (await workingTreeDirty(cwd)) throw new Error("working tree has uncommitted changes — commit or stash first");
+  const def = await defaultBranch(cwd);
+  await gitMust(cwd, "fetch", "origin", def);
+  if ((await gitFor(cwd)("show-ref", "--verify", `refs/heads/${slug}`)).code === 0) {
     throw new Error(`branch "${slug}" already exists`);
   }
-  gitMust(cwd, "switch", "-c", slug, `origin/${def}`, "--no-track");
+  await gitMust(cwd, "switch", "-c", slug, `origin/${def}`, "--no-track");
 
   // Clear any pre-Beacon commit-blocking hook BEFORE committing the scope —
   // it would otherwise reject the declaration commit itself.
-  const legacy = removeLegacyGuard(cwd);
+  const legacy = await removeLegacyGuard(cwd);
 
-  writeScope({ cwd, branch: slug, task: String(name).trim() });
-  const claude = writeClaudeMd({ cwd, branch: slug });
+  await writeScope({ cwd, branch: slug, task: String(name).trim() });
+  const claude = await writeClaudeMd({ cwd, branch: slug });
 
-  gitMust(cwd, "add", "--", SCOPE_FILE, "CLAUDE.md");
+  await gitMust(cwd, "add", "--", SCOPE_FILE, "CLAUDE.md");
   let committed = false;
-  if (gitFor(cwd)("diff", "--cached", "--quiet").code !== 0) {
-    gitMust(cwd, "commit", "-m", `Beacon: declare front-end scope for ${slug}`);
+  if ((await gitFor(cwd)("diff", "--cached", "--quiet")).code !== 0) {
+    await gitMust(cwd, "commit", "-m", `Beacon: declare front-end scope for ${slug}`);
     committed = true;
   }
 
-  const guard = installGuard(cwd);
+  const guard = await installGuard(cwd);
   return {
     branch: slug,
     base: `origin/${def}`,

@@ -20,23 +20,23 @@ function cli(cwd, args = [], repo) {
 }
 
 describe("cli", () => {
-  test.each([[[]], [["help"]], [["--help"]], [["-h"]]])("usage %p", (args) => {
+  test.each([[[]], [["help"]], [["--help"]], [["-h"]]])("usage %p", async (args) => {
     const repo = makeRepo();
     expect(cli(repo.cwd, args)).toMatchSnapshot();
   });
 
-  test("usage works outside a repo; commands don't", () => {
+  test("usage works outside a repo; commands don't", async () => {
     const repo = makeRepo();
     expect(cli(repo.tmp).code).toBe(0);
     expect(cli(repo.tmp, ["status"], repo)).toMatchSnapshot();
   });
 
-  test("unknown command", () => {
+  test("unknown command", async () => {
     const repo = makeRepo();
     expect(cli(repo.cwd, ["frobnicate"])).toMatchSnapshot();
   });
 
-  test("start", () => {
+  test("start", async () => {
     const repo = makeRepo();
     expect(cli(repo.cwd, ["start"])).toMatchSnapshot("no name");
     expect(cli(repo.cwd, ["start", "polish", "the", "nav"], repo)).toMatchSnapshot("ok");
@@ -45,7 +45,7 @@ describe("cli", () => {
     expect(cli(repo.cwd, ["start", "polish the nav"], repo)).toMatchSnapshot("exists");
   });
 
-  test("start: guard not installed, legacy hook removed", () => {
+  test("start: guard not installed, legacy hook removed", async () => {
     const repo = makeRepo();
     repo.write(".git/hooks/pre-commit", "#!/bin/sh\n# devsigner-editable-zone-guard\nexit 1\n");
     repo.write(".git/info/exclude", ".claude/settings.local.json\n");
@@ -53,16 +53,16 @@ describe("cli", () => {
     expect(cli(repo.cwd, ["start", "x"], repo)).toMatchSnapshot();
   });
 
-  test("status", () => {
-    const repo = flaggedBranch();
+  test("status", async () => {
+    const repo = await flaggedBranch();
     expect(cli(repo.cwd, ["status"], repo)).toMatchSnapshot("flagged branch");
     const clean = makeRepo();
     clean.git("switch", "-q", "-c", "empty");
     expect(cli(clean.cwd, ["status"], clean)).toMatchSnapshot("no changes");
   });
 
-  test("review: list, hint, revert one, revert all, all clear", () => {
-    const repo = flaggedBranch();
+  test("review: list, hint, revert one, revert all, all clear", async () => {
+    const repo = await flaggedBranch();
     expect(cli(repo.cwd, ["review", "--list"], repo)).toMatchSnapshot("list");
     expect(cli(repo.cwd, ["review"], repo)).toMatchSnapshot("non-tty hint");
     expect(cli(repo.cwd, ["review", "--revert", "src/components/Price.tsx"], repo)).toMatchSnapshot("revert unflagged");
@@ -71,15 +71,15 @@ describe("cli", () => {
     expect(cli(repo.cwd, ["review"], repo)).toMatchSnapshot("all clear");
   });
 
-  test("review on a branch with only one change", () => {
+  test("review on a branch with only one change", async () => {
     const repo = makeRepo();
     repo.git("switch", "-q", "-c", "one");
     repo.write("src/api/x.ts");
     expect(cli(repo.cwd, ["review", "--list"], repo)).toMatchSnapshot();
   });
 
-  test("ship: dry run, blocked, allowed with a title", () => {
-    const repo = flaggedBranch();
+  test("ship: dry run, blocked, allowed with a title", async () => {
+    const repo = await flaggedBranch();
     expect(cli(repo.cwd, ["ship", "--dry-run"], repo)).toMatchSnapshot("dry run");
     expect(cli(repo.cwd, ["ship"], repo)).toMatchSnapshot("blocked");
     expect(cli(repo.cwd, ["ship", "--allow-flagged", "--title", "Pricing polish"], repo)).toMatchSnapshot("shipped");

@@ -52,9 +52,9 @@ const PATHS = [
 ];
 
 let repo;
-beforeAll(() => {
+beforeAll(async () => {
   repo = makeRepo();
-  engine.start({ cwd: repo.cwd, name: "scope check" });
+  await engine.start({ cwd: repo.cwd, name: "scope check" });
   for (const p of PATHS) repo.write(p);
 });
 afterAll(cleanupRepos);
@@ -63,16 +63,16 @@ function zoneOf(f) {
   return f.prototype ? "prototype" : f.outOfScope ? "out" : "in";
 }
 
-test("default scope classifies every path", () => {
-  const { files } = engine.workingChanges({ cwd: repo.cwd });
+test("default scope classifies every path", async () => {
+  const { files } = await engine.workingChanges({ cwd: repo.cwd });
   const zones = Object.fromEntries(files.map((f) => [f.file, zoneOf(f)]));
   expect(Object.keys(zones).sort()).toEqual([...PATHS].sort());
   expect(zones).toMatchSnapshot();
 });
 
 describe("guard agrees with the engine", () => {
-  test.each(PATHS)("%s", (file) => {
-    const engineZone = zoneOf(engine.workingChanges({ cwd: repo.cwd }).files.find((f) => f.file === file));
+  test.each(PATHS)("%s", async (file) => {
+    const engineZone = zoneOf((await engine.workingChanges({ cwd: repo.cwd })).files.find((f) => f.file === file));
     const r = runGuard(repo, { tool_input: { file_path: `${repo.cwd}/${file}` } });
     expect(r.code).toBe(0);
     expect(r.stdout !== null).toBe(engineZone === "out");

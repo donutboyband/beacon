@@ -3,7 +3,7 @@
   "version": "0.3.1",
   "description": "A guardrail for AI coding agents: per-branch front-end scope declarations, real-time flags on out-of-scope writes, and one-click revert before the PR.",
   "type": "module",
-  "main": "src/main/main.js",
+  "main": "out/main.mjs",
   "bin": {
     "beacon": "bin/beacon.mjs"
   },
@@ -13,6 +13,7 @@
     "start": "bun run build && electron .",
     "test": "bun test",
     "typecheck": "tsc -p . && tsc -p scripts",
+    "smoke": "bun run build && bun scripts/smoke-app.ts",
     "dist": "bun run build && electron-builder --mac",
     "pack": "bun run build && electron-builder --dir"
   },
@@ -37,9 +38,9 @@
     "appId": "com.beacon.app",
     "productName": "Beacon",
     "files": [
-      "src/**/*",
-      "!src/engine/**",
       "out/**/*",
+      "src/renderer/**/*",
+      "!src/renderer/*.d.ts",
       "bin/**/*",
       "package.json",
       "!scripts"

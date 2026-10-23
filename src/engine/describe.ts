@@ -132,10 +132,10 @@ and "## Flag for review" (risky or assumption-based items — lead with any out-
 
 // Build the analysis + annotation without any side effects (used by the UI preview).
 export async function plan({ cwd, anthropicKey, model }: { cwd?: string; anthropicKey?: string; model?: string } = {}) {
-  const s = status({ cwd, fetch: true });
-  const base = baseRef(cwd, s.defaultBranch);
-  const diff = fullDiff(cwd, base);
-  const protoNotes = readProtoNotes(cwd);
+  const s = await status({ cwd, fetch: true });
+  const base = await baseRef(cwd, s.defaultBranch);
+  const diff = await fullDiff(cwd, base);
+  const protoNotes = await readProtoNotes(cwd);
   const llm = await enrichWithLLM({ branch: s.branch, files: s.files, signal: s.signal, diff, protoNotes, anthropicKey, model });
   const annotation = llm || buildDeterministic({ branch: s.branch, files: s.files, signal: s.signal, protoNotes });
   return { ...s, annotation };

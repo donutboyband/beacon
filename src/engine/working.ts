@@ -12,10 +12,10 @@ import type { ChangedFile } from "./types.ts";
 // NOTE: porcelain output is parsed raw (no trim) — the two status columns can
 // legitimately start with a space, and trimming would eat the first path's
 // leading character. -uall lists files inside untracked directories.
-export function workingChanges({ cwd }: { cwd?: string } = {}): { branch: string; files: ChangedFile[] } {
-  requireRepo(cwd);
-  const cfg = loadScope(cwd);
-  const res = run("git", ["status", "--porcelain", "-uall"], { cwd, trim: false });
+export async function workingChanges({ cwd }: { cwd?: string } = {}): Promise<{ branch: string; files: ChangedFile[] }> {
+  await requireRepo(cwd);
+  const cfg = await loadScope(cwd);
+  const res = await run("git", ["status", "--porcelain", "-uall"], { cwd, trim: false });
   const files = res.stdout.split("\n").filter(Boolean).map((line) => {
     const x = line.slice(0, 2);
     let file = line.slice(3);
@@ -28,7 +28,7 @@ export function workingChanges({ cwd }: { cwd?: string } = {}): { branch: string
     const zone = fileZone(file, cfg);
     return { file, status, outOfScope: zone === "out", prototype: zone === "prototype" };
   });
-  return { branch: currentBranch(cwd), files };
+  return { branch: await currentBranch(cwd), files };
 }
 
 // Stage and commit ("Save" in the UI). Out-of-scope files are allowed but
@@ -39,18 +39,18 @@ export function workingChanges({ cwd }: { cwd?: string } = {}): { branch: string
 // Pass `files` to save just those files (the per-row Save button): only their
 // uncommitted changes are committed — everything else stays exactly as it is,
 // staged or not.
-export function commit({ cwd, message, allowFlagged = false, files }: { cwd?: string; message?: string; allowFlagged?: boolean; files?: string[] } = {}) {
-  requireRepo(cwd);
+export async function commit({ cwd, message, allowFlagged = false, files }: { cwd?: string; message?: string; allowFlagged?: boolean; files?: string[] } = {}) {
+  await requireRepo(cwd);
 
   let targets: ChangedFile[];      // the changes this commit will contain
   let pathspec: string[] | null = null; // non-null = per-file save
   if (files && files.length) {
     const wanted = new Set(files);
-    targets = workingChanges({ cwd }).files.filter((f) => wanted.has(f.file));
+    targets = (await workingChanges({ cwd })).files.filter((f) => wanted.has(f.file));
     if (!targets.length) throw new Error("no unsaved changes in the selected file(s)");
     pathspec = targets.map((f) => f.file);
   } else {
-    targets = status({ cwd, fetch: false }).files;
+    targets = (await status({ cwd, fetch: false })).files;
     if (!targets.length) throw new Error("nothing to commit — no changes yet");
   }
 
@@ -61,24 +61,24 @@ export function commit({ cwd, message, allowFlagged = false, files }: { cwd?: st
 
   const fallback = pathspec && pathspec.length === 1 ? `Update ${pathspec[0]!.split("/").pop()}` : "Update";
   const finalMessage = (message && message.trim()) || fallback;
-  const msgFile = tempFile("msg.txt", finalMessage);
+  const msgFile = await tempFile("msg.txt", finalMessage);
 
   if (pathspec) {
     // Stage the chosen files (covers untracked adds and deletions), then commit
     // only that pathspec — other staged work is left untouched for a later save.
-    gitMust(cwd, "add", "--", ...pathspec);
-    gitMust(cwd, "commit", "-F", msgFile, "--", ...pathspec);
+    await gitMust(cwd, "add", "--", ...pathspec);
+    await gitMust(cwd, "commit", "-F", msgFile, "--", ...pathspec);
   } else {
-    gitMust(cwd, "add", "-A");
-    gitMust(cwd, "commit", "-F", msgFile);
+    await gitMust(cwd, "add", "-A");
+    await gitMust(cwd, "commit", "-F", msgFile);
   }
   return { committed: true, message: finalMessage, files: targets.length, flagged: flagged.length };
 }
 
 // Throw away all uncommitted changes (tracked reset + untracked removed). Destructive.
-export function discard({ cwd }: { cwd?: string } = {}) {
-  requireRepo(cwd);
-  gitMust(cwd, "reset", "--hard", "HEAD");
-  run("git", ["clean", "-fd"], { cwd });
+export async function discard({ cwd }: { cwd?: string } = {}) {
+  await requireRepo(cwd);
+  await gitMust(cwd, "reset", "--hard", "HEAD");
+  await run("git", ["clean", "-fd"], { cwd });
   return { discarded: true };
 }

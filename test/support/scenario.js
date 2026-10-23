@@ -28,9 +28,9 @@ export const Price = () => (
 // hardcoded currency symbol
 `;
 
-export function flaggedBranch() {
+export async function flaggedBranch() {
   const repo = makeRepo(BASE_FILES);
-  engine.start({ cwd: repo.cwd, name: "polish pricing" });
+  await engine.start({ cwd: repo.cwd, name: "polish pricing" });
 
   repo.commit("price card", { "src/components/Price.tsx": PRICE_TSX });
   repo.rm("docs/old.md");

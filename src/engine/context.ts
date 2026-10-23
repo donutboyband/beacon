@@ -3,16 +3,27 @@
 import { ghReady } from "./gh.ts";
 import { currentBranch, defaultBranch, isRepo, originUrl, ownerRepo, workingTreeDirty } from "./repo.ts";
 
-export function getContext(cwd?: string) {
-  if (!isRepo(cwd)) return { cwd, isRepo: false };
+export interface RepoContext {
+  cwd?: string;
+  isRepo: boolean;
+  branch?: string;
+  defaultBranch?: string;
+  dirty?: boolean;
+  ownerRepo?: string | null;
+  originUrl?: string;
+  ghReady?: boolean;
+}
+
+export async function getContext(cwd?: string): Promise<RepoContext> {
+  if (!(await isRepo(cwd))) return { cwd, isRepo: false };
   return {
     cwd,
     isRepo: true,
-    branch: currentBranch(cwd),
-    defaultBranch: defaultBranch(cwd),
-    dirty: workingTreeDirty(cwd),
-    ownerRepo: ownerRepo(cwd),
-    originUrl: originUrl(cwd),
-    ghReady: ghReady(),
+    branch: await currentBranch(cwd),
+    defaultBranch: await defaultBranch(cwd),
+    dirty: await workingTreeDirty(cwd),
+    ownerRepo: await ownerRepo(cwd),
+    originUrl: await originUrl(cwd),
+    ghReady: await ghReady(),
   };
 }
