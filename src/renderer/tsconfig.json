@@ -1,0 +1,12 @@
+{
+  // The renderer: browser code (DOM types, React JSX), bundled by Bun to
+  // out/renderer/renderer.js. Node types are only here because the IPC
+  // contract's result types come from the engine's signatures.
+  "extends": "../../tsconfig.json",
+  "compilerOptions": {
+    "lib": ["ES2023", "DOM", "DOM.Iterable"],
+    "jsx": "react-jsx",
+    "types": ["node"]
+  },
+  "include": ["**/*.ts", "**/*.tsx"]
+}

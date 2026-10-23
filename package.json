@@ -12,7 +12,7 @@
     "prepare": "bun scripts/build.ts",
     "start": "bun run build && electron .",
     "test": "bun test",
-    "typecheck": "tsc -p . && tsc -p scripts",
+    "typecheck": "tsc -p . && tsc -p src/renderer && tsc -p scripts",
     "smoke": "bun run build && bun scripts/smoke-app.ts",
     "dist": "bun run build && electron-builder --mac",
     "pack": "bun run build && electron-builder --dir",
@@ -48,8 +48,6 @@
     "productName": "Beacon",
     "files": [
       "out/**/*",
-      "src/renderer/**/*",
-      "!src/renderer/*.d.ts",
       "bin/**/*",
       "package.json",
       "!scripts"

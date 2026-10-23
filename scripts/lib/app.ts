@@ -10,7 +10,8 @@ const ROOT = join(import.meta.dir, "..", "..");
 
 export class Cdp {
   private nextId = 1;
-  private constructor(private ws: WebSocket) {}
+  private ws: WebSocket;
+  private constructor(ws: WebSocket) { this.ws = ws; }
 
   static async connect(url: string): Promise<Cdp> {
     const ws = new WebSocket(url);

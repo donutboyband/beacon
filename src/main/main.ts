@@ -44,7 +44,7 @@ function createWindow() {
       sandbox: true,
     },
   });
-  win.loadFile(join(ROOT, "src", "renderer", "index.html"));
+  win.loadFile(join(__dirname, "renderer", "index.html"));
   return win;
 }
 

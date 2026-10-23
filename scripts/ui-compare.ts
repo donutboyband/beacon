@@ -88,11 +88,12 @@ const SERIALIZE = `(() => {
 const WATCH_TOASTS = `(() => {
   if (window.__toasts) return;
   window.__toasts = [];
+  let shown = null; // the toast currently on screen, logged once per showing
   new MutationObserver(() => {
     const t = document.getElementById("toast");
-    if (!t || t.classList.contains("hidden")) return;
-    const s = t.textContent;
-    if (window.__toasts[window.__toasts.length - 1] !== s) window.__toasts.push(s);
+    const s = t && !t.classList.contains("hidden") ? t.textContent : null;
+    if (s !== null && s !== shown) window.__toasts.push(s);
+    shown = s;
   }).observe(document.body, { subtree: true, childList: true, characterData: true, attributes: true, attributeFilter: ["class"] });
 })()`;
 
@@ -260,6 +261,55 @@ async function busyBranch() {
     await tap(page, "#ab-save");
     await waitFor(page, `window.__toasts.some((t) => t.startsWith("Saved"))`, "save to land");
     await capture(app, "18-after-save");
+
+    // Revert from inside the Create PR preview, then open the PR for real.
+    await tap(page, "#ab-createpr");
+    await waitFor(page, `document.querySelector(".preview-body")`, "PR preview");
+    await tap(page, `#ship-preview [data-revert-file="src/auth/session.ts"]`);
+    await waitFor(page, `window.__toasts.includes("Reverted src/auth/session.ts") && document.querySelector(".preview-body")`, "preview revert");
+    await capture(app, "23-ship-after-revert");
+    await tap(page, "#ship-confirm");
+    await waitFor(page, `window.__toasts.some((t) => t.startsWith("Pull request created"))`, "PR to open");
+    await capture(app, "24-pr-created");
+
+    // A live refresh while the save message is half-typed keeps it (and focus).
+    await tap(page, `.row-item[data-type="branch"][data-id="polish-pricing"]`);
+    repo.write("src/components/Price.tsx", "export const Price = () => null;\n");
+    await waitFor(page, `document.querySelector("#ab-msg") && !document.querySelector("#ab-msg").disabled`, "live refresh");
+    await tap(page, "#ab-msg");
+    await type(page, "half-typed");
+    repo.write("src/styles/price.css", ".price { color: red; }\n");
+    await waitFor(page, `document.querySelectorAll("[data-save-file]").length === 2`, "second live refresh");
+    await capture(app, "25-live-refresh-keeps-typing");
+
+    // Stash via the action bar, naming it with Enter; then restore it.
+    await tap(page, "#ab-stash");
+    await type(page, "wip");
+    await key(page, "Enter");
+    await waitFor(page, `window.__toasts.includes("Stashed: wip")`, "stash");
+    await capture(app, "26-stashed");
+    await tap(page, `.row-item[data-type="stash"][data-id="0"]`);
+    await waitFor(page, `document.querySelector("#stash-restore")`, "stash detail");
+    await tap(page, "#stash-restore");
+    await waitFor(page, `window.__toasts.includes("Stash restored")`, "restore");
+    await capture(app, "27-stash-restored");
+
+    // Delete a branch through the right-click menu and confirmation.
+    await tap(page, `.row-item[data-type="branch"][data-id="old-idea"]`, { button: "right" });
+    await tap(page, ".menu .menu-item");
+    await tap(page, "#modal-ok");
+    await waitFor(page, `window.__toasts.some((t) => t.startsWith("Deleted"))`, "delete");
+    await capture(app, "28-branch-deleted");
+
+    await tap(page, `.group-head[data-group="inprogress"]`);
+    await capture(app, "29-group-collapsed");
+
+    await tap(page, "#fetch-btn");
+    await waitFor(page, `window.__toasts.length > 0`, "fetch");
+    await capture(app, "30-fetched");
+    await tap(page, "#pull-btn");
+    await waitFor(page, `window.__toasts.length > 0`, "pull");
+    await capture(app, "31-pulled");
   });
 }
 

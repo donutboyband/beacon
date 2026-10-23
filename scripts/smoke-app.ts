@@ -5,74 +5,28 @@
 //
 //   bun run build && bun scripts/smoke-app.ts [screenshot.png]
 
-import { spawn } from "node:child_process";
 import { writeFileSync } from "node:fs";
 import { join } from "node:path";
+import { click, launchApp, waitFor } from "./lib/app.ts";
 // @ts-ignore — plain-JS test helpers: hermetic git env, fake gh on PATH, fixtures
 import { cleanupRepos } from "../test/support/repo.js";
 // @ts-ignore
 import { flaggedBranch } from "../test/support/scenario.js";
 
 const ROOT = join(import.meta.dir, "..");
-const PORT = 9300 + Math.floor(Math.random() * 500);
 const shot = process.argv[2] || join(ROOT, "out", "smoke.png");
 
 const repo = await flaggedBranch();
-const electron = spawn(join(ROOT, "node_modules", ".bin", "electron"), [ROOT, `--remote-debugging-port=${PORT}`], {
-  cwd: ROOT,
-  env: process.env,
-  stdio: ["ignore", "inherit", "inherit"],
-});
-
-async function pageSocket(): Promise<WebSocket> {
-  for (let i = 0; i < 100; i++) {
-    try {
-      const targets = (await (await fetch(`http://127.0.0.1:${PORT}/json/list`)).json()) as any[];
-      const page = targets.find((t) => t.type === "page" && String(t.url).endsWith("index.html"));
-      if (page) {
-        const ws = new WebSocket(page.webSocketDebuggerUrl);
-        await new Promise((ok, err) => { ws.onopen = ok; ws.onerror = err; });
-        return ws;
-      }
-    } catch { /* not up yet */ }
-    await Bun.sleep(100);
-  }
-  throw new Error("Electron never exposed the renderer page");
-}
-
-let nextId = 1;
-function cdp(ws: WebSocket, method: string, params: object = {}): Promise<any> {
-  const id = nextId++;
-  return new Promise((resolve, reject) => {
-    const onMessage = (ev: MessageEvent) => {
-      const msg = JSON.parse(String(ev.data));
-      if (msg.id !== id) return;
-      ws.removeEventListener("message", onMessage);
-      msg.error ? reject(new Error(msg.error.message)) : resolve(msg.result);
-    };
-    ws.addEventListener("message", onMessage);
-    ws.send(JSON.stringify({ id, method, params }));
-  });
-}
-
-async function evaluate(ws: WebSocket, expression: string): Promise<any> {
-  const r = await cdp(ws, "Runtime.evaluate", { expression, awaitPromise: true, returnByValue: true });
-  if (r.exceptionDetails) throw new Error(r.exceptionDetails.exception?.description || r.exceptionDetails.text);
-  return r.result.value;
-}
+const app = await launchApp();
+const ws = app.page;
+const evaluate = (_ws: unknown, expression: string) => ws.evaluate(expression);
+const cdp = (_ws: unknown, method: string, params: object = {}) => ws.send(method, params);
 
 const checks: [string, boolean, string][] = [];
 const check = (name: string, ok: boolean, detail = "") => checks.push([name, ok, detail]);
 
 try {
-  const ws = await pageSocket();
   const cwd = JSON.stringify(repo.cwd);
-  let seen = "";
-  for (let i = 0; i < 50 && seen !== "object"; i++) {
-    seen = await evaluate(ws, "typeof window.beacon");
-    if (seen !== "object") await Bun.sleep(100);
-  }
-  if (seen !== "object") throw new Error(`window.beacon is ${seen} at ${await evaluate(ws, "location.href")}`);
 
   // 1. Each bridge method answers through the real IPC path.
   const r = await evaluate(ws, `(async () => {
@@ -130,16 +84,20 @@ try {
   check("main stays responsive during queued work", timing.ok && timing.tFast < timing.tSlow / 2,
     `detectAgents ${timing.tFast.toFixed(0)}ms vs 8 reviews ${timing.tSlow.toFixed(0)}ms`);
 
-  // 4. Open the repo in the UI and capture it.
-  await evaluate(ws, `loadContext(${cwd}).then(() => selectWorking())`);
+  // 4. Open the repo in the UI, as a user would, and capture it.
+  await app.pickFolder(repo.cwd);
+  await click(ws, "#repo-btn");
+  // (the burst above saved and stashed everything, so open the branch itself)
+  await waitFor(ws, `document.querySelector('.row-item[data-id="polish-pricing"]')`, "repo to open");
+  await click(ws, `.row-item[data-id="polish-pricing"]`);
+  await waitFor(ws, `document.querySelector(".action-bar")`, "branch view");
   await Bun.sleep(1200);
   const { data } = await cdp(ws, "Page.captureScreenshot", { format: "png" });
   writeFileSync(shot, Buffer.from(data, "base64"));
   const text = await evaluate(ws, `document.body.innerText`);
   check("UI renders the repo", String(text).includes("polish") || String(text).includes("Polish"));
-  ws.close();
 } finally {
-  electron.kill();
+  app.close();
   cleanupRepos();
 }
 
