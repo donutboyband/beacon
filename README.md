@@ -72,9 +72,10 @@ beacon ship [--dry-run]  # stage, commit, push, open an annotated PR
 ## Develop
 
 ```bash
-npm install
-npm start        # run the app from source
-bun test         # behaviour tests (engine, guard, CLI) against throwaway repos
+npm install      # also builds out/ (needs Bun)
+npm start        # build, then run the app from source
+bun test         # build, then behaviour tests (engine, guard, CLI)
+bun run typecheck
 ```
 
 The tests pin down current behaviour exactly — outputs, files written, git
@@ -169,11 +170,26 @@ or ship it explicitly flagged for the reviewing developer.
 
 ## Architecture
 
-The engine in `src/engine` is UI-agnostic and drives both the CLI
-(`bin/beacon.mjs`) and the Electron app (`src/main`, `src/renderer`). No
-bundler and no framework — plain ES modules with a small, sandboxed preload
-bridge; the renderer never touches Node directly. `beacon-guard.mjs` is the
-canonical hook source, copied into each guarded repo.
+The engine in `src/engine` is UI-agnostic TypeScript and drives both the CLI
+(`bin/beacon.mjs`) and the Electron app (`src/main`, `src/renderer`). Bun
+bundles it (`bun run build`) into plain ESM for Node in `out/`: `engine.mjs`
+for the app and CLI, and `guard.mjs`, the hook copied into each guarded repo.
+Both runtimes are Node, so the engine uses Node APIs only — `bun run
+typecheck` enforces that. The guard and the engine share one scope matcher
+(`scope.ts`), so live flags and the pre-PR review can't disagree. The
+renderer never touches Node directly; it goes through a small, sandboxed
+preload bridge.
+
+| Module | Owns |
+| --- | --- |
+| `scope.ts` | default globs, matching, zones, reasons |
+| `flags.ts` | the guard's `flags.jsonl` log |
+| `process.ts` · `repo.ts` · `gh.ts` | running git/gh, repo facts, GitHub |
+| `diff.ts` · `status.ts` | changes vs base, reuse signal |
+| `start.ts` · `hooks.ts` | scope declaration, guard install |
+| `review.ts` · `describe.ts` · `ship.ts` | flags + revert, PR text, opening the PR |
+| `branches.ts` · `working.ts` · `stash.ts` | everyday git for the app |
+| `guard.ts` | the PreToolUse hook entry point |
 
 ## Distribution (signing)
 

@@ -1,0 +1,21 @@
+{
+  // Type-checks the engine only; Bun bundles it (scripts/build.ts). Node types
+  // and no Bun types: the engine runs in Electron's main process and the
+  // installed guard runs on `node`, so Bun APIs must stay out of it.
+  "compilerOptions": {
+    "target": "ES2023",
+    "lib": ["ES2023"],
+    "module": "preserve",
+    "moduleResolution": "bundler",
+    "allowImportingTsExtensions": true,
+    "verbatimModuleSyntax": true,
+    "erasableSyntaxOnly": true,
+    "noEmit": true,
+    "strict": true,
+    "noUncheckedIndexedAccess": true,
+    "noImplicitOverride": true,
+    "skipLibCheck": true,
+    "types": ["node"]
+  },
+  "include": ["src/engine/**/*.ts"]
+}

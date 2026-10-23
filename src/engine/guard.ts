@@ -8,38 +8,44 @@
 // flags.jsonl (next to this script) and a warning is surfaced so the change
 // can be reviewed — and reverted — before a PR goes out (`beacon review`).
 //
-// Dependency-free on purpose: it runs via `node` in whatever repo it guards.
+// Bundled to a single dependency-free file (out/guard.mjs): it runs via
+// `node` in whatever repo it guards. Scope matching is the engine's own.
 
-import { readFileSync, existsSync, appendFileSync } from "node:fs";
+import { appendFileSync, existsSync, readFileSync } from "node:fs";
 import { spawnSync } from "node:child_process";
-import { dirname, join, resolve, relative, isAbsolute } from "node:path";
+import { dirname, isAbsolute, join, relative, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
+import { FLAG_LOG, flagLine } from "./flags.ts";
+import { DEFAULT_PROTOTYPE, SCOPE_FILE, matchZone, scopeFrom, scopeReason } from "./scope.ts";
 
-function main() {
-  let call;
+const git = (cwd: string, ...args: string[]) => spawnSync("git", args, { cwd, encoding: "utf8" });
+
+function main(): void {
+  let call: any;
   try { call = JSON.parse(readFileSync(0, "utf8")); } catch { return; }
 
   const toolInput = call.tool_input || {};
-  const target = toolInput.file_path || toolInput.notebook_path;
+  const target: string | undefined = toolInput.file_path || toolInput.notebook_path;
   if (!target) return;
 
-  const cwd = call.cwd || process.cwd();
-  const rootRes = spawnSync("git", ["rev-parse", "--show-toplevel"], { cwd, encoding: "utf8" });
+  const cwd: string = call.cwd || process.cwd();
+  const rootRes = git(cwd, "rev-parse", "--show-toplevel");
   if (rootRes.status !== 0) return;
   const root = rootRes.stdout.trim();
 
   // No scope declaration → not a Beacon-scoped branch; stay out of the way.
-  const scopePath = join(root, ".beacon", "scope.json");
+  const scopePath = join(root, SCOPE_FILE);
   if (!existsSync(scopePath)) return;
-  let scope;
+  let scope: any;
   try { scope = JSON.parse(readFileSync(scopePath, "utf8")); } catch { return; }
-  const allow = Array.isArray(scope.allow) ? scope.allow : [];
-  const deny = Array.isArray(scope.deny) ? scope.deny : [];
-  const prototype = Array.isArray(scope.prototype) ? scope.prototype : [".beacon/prototype/**"];
+  if (scope === null) return;
+  // Missing lists mean nothing is allowed or denied — unlike the engine, which
+  // falls back to the default lists.
+  const cfg = scopeFrom(scope, { allow: [], deny: [], prototype: DEFAULT_PROTOTYPE });
 
   // The scope is per-branch. After a merge, scope.json can linger on main —
   // if the declared branch isn't the one checked out, the rule doesn't apply.
-  const branch = (spawnSync("git", ["branch", "--show-current"], { cwd: root, encoding: "utf8" }).stdout || "").trim();
+  const branch = (git(root, "branch", "--show-current").stdout || "").trim();
   if (scope.branch && branch && scope.branch !== branch) return;
 
   const abs = isAbsolute(target) ? target : resolve(cwd, target);
@@ -47,27 +53,17 @@ function main() {
   if (file.startsWith("..")) return;                              // outside this repo
   if (file === "CLAUDE.md" || file.startsWith(".beacon/")) return; // Beacon's own files
 
-  const g2r = (g) => new RegExp("^" + g
-    .replace(/[.+^${}()|[\]\\]/g, "\\$&")
-    .replace(/\*\*/g, "\0")
-    .replace(/\*/g, "[^/]*")
-    .replace(/\0/g, ".*") + "$");
-  const firstMatch = (globs) => globs.find((x) => g2r(x).test(file));
+  // The mock zone is expected work; in-scope writes pass silently.
+  if (matchZone(file, cfg) !== "out") return;
 
-  if (firstMatch(prototype) !== undefined) return; // the mock zone — expected work
-  const denied = firstMatch(deny);
-  if (!denied && firstMatch(allow) !== undefined) return; // in scope — silent pass
-
-  const reason = denied
-    ? `it matches the denied pattern "${denied}" — backend, auth, routing, DB, and infra are off-limits on this branch`
-    : "it doesn't match any allowed front-end pattern for this branch";
+  const reason = scopeReason(file, cfg);
 
   // Where the agent should have gone instead: the first prototype glob, as a dir.
-  const protoDir = (prototype[0] || ".beacon/prototype/**").replace(/\/?\*+$/, "/");
+  const protoDir = (cfg.prototype[0] || ".beacon/prototype/**").replace(/\/?\*+$/, "/");
 
   try {
-    appendFileSync(join(dirname(fileURLToPath(import.meta.url)), "flags.jsonl"),
-      JSON.stringify({ ts: new Date().toISOString(), branch, file, tool: call.tool_name || "", reason }) + "\n");
+    appendFileSync(join(dirname(fileURLToPath(import.meta.url)), FLAG_LOG),
+      flagLine({ ts: new Date().toISOString(), branch, file, tool: call.tool_name || "", reason }));
   } catch { /* logging must never break the write */ }
 
   // No permissionDecision: the normal permission flow continues untouched.

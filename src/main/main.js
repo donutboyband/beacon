@@ -7,7 +7,7 @@ import { fileURLToPath } from "node:url";
 import { dirname, join } from "node:path";
 import { spawnSync, spawn } from "node:child_process";
 import { existsSync, watch } from "node:fs";
-import * as beacon from "../engine/beacon-core.mjs";
+import * as beacon from "../../out/engine.mjs";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 

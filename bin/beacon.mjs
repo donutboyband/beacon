@@ -1,7 +1,7 @@
 #!/usr/bin/env node
-// Beacon CLI — a thin formatter over src/engine/beacon-core.mjs.
+// Beacon CLI — a thin formatter over the engine (src/engine, built to out/).
 import { createInterface } from "node:readline/promises";
-import * as beacon from "../src/engine/beacon-core.mjs";
+import * as beacon from "../out/engine.mjs";
 
 const C = {
   dim: (s) => `\x1b[2m${s}\x1b[0m`,

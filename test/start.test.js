@@ -2,7 +2,7 @@
 // guard install — plus every way it refuses.
 import { afterAll, describe, expect, test } from "bun:test";
 import { join } from "node:path";
-import { engine } from "./support/subject.js";
+import { GUARD_SOURCE, engine } from "./support/subject.js";
 import { cleanupRepos, makeRepo, normalize } from "./support/repo.js";
 import { guardCommand } from "./support/guard.js";
 
@@ -23,9 +23,7 @@ describe("start", () => {
     expect(repo.read("CLAUDE.md")).toMatchSnapshot("CLAUDE.md (created)");
     expect(repo.read(".claude/settings.local.json")).toMatchSnapshot("settings.local.json");
     expect(repo.read(".git/info/exclude").split("\n")).toContain(".claude/settings.local.json");
-    expect(repo.read(".git/beacon/guard.mjs")).toBe(
-      require("node:fs").readFileSync(join(import.meta.dir, "..", "src", "engine", "beacon-guard.mjs"), "utf8"),
-    );
+    expect(repo.read(".git/beacon/guard.mjs")).toBe(require("node:fs").readFileSync(GUARD_SOURCE, "utf8"));
     expect(repo.git("status", "--porcelain")).toBe("");
   });
 
